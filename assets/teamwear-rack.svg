@@ -1,0 +1,16 @@
+<svg width="900" height="700" viewBox="0 0 900 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="700" rx="48" fill="#F7F2EA"/>
+  <rect x="82" y="88" width="736" height="524" rx="42" fill="#FFFFFF"/>
+  <path d="M180 188H720" stroke="#BE9358" stroke-width="12" stroke-linecap="round"/>
+  <path d="M230 188V530" stroke="#C9A978" stroke-width="10" stroke-linecap="round"/>
+  <path d="M670 188V530" stroke="#C9A978" stroke-width="10" stroke-linecap="round"/>
+  <path d="M292 220L246 264V474H338V264L292 220Z" fill="#365B7A"/>
+  <path d="M450 220L404 264V474H496V264L450 220Z" fill="#BE9358"/>
+  <path d="M608 220L562 264V474H654V264L608 220Z" fill="#365B7A"/>
+  <path d="M292 220L312 248H272L292 220Z" fill="#D8E7F2"/>
+  <path d="M450 220L470 248H430L450 220Z" fill="#FFF1DD"/>
+  <path d="M608 220L628 248H588L608 220Z" fill="#D8E7F2"/>
+  <text x="292" y="376" text-anchor="middle" font-size="82" font-family="Arial" font-weight="700" fill="#F7F2EA">6</text>
+  <text x="450" y="376" text-anchor="middle" font-size="82" font-family="Arial" font-weight="700" fill="#FFF7EB">6</text>
+  <text x="608" y="376" text-anchor="middle" font-size="82" font-family="Arial" font-weight="700" fill="#F7F2EA">6</text>
+</svg>

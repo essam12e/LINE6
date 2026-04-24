@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>خط ستة | المنتجات</title>
+    <meta
+      name="description"
+      content="صفحة منتجات خط ستة - تصنيفات واضحة وبطاقات منتجات ونموذج طلب سريع عبر واتساب."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-gradient"></div>
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+
+    <header class="site-header scrolled">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <path d="M6 22L14 6L22 22" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 16H19" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-copy">
+          <strong>خط ستة</strong>
+          <small>للطباعة والرياضة</small>
+        </span>
+      </a>
+
+      <nav class="nav">
+        <a href="./index.html#services">الخدمات</a>
+        <a href="./products.html">المنتجات</a>
+        <a href="./index.html#portfolio">أعمالنا</a>
+        <a href="./index.html#contact">تواصل</a>
+      </nav>
+
+      <a class="whatsapp-btn" href="https://wa.me/966569410657?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%A3%D8%B1%D8%BA%D8%A8%20%D8%A8%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%20%D8%B5%D9%81%D8%AD%D8%A9%20%D9%85%D9%86%D8%AA%D8%AC%D8%A7%D8%AA%20%D8%AE%D8%B7%20%D8%B3%D8%AA%D8%A9" target="_blank" rel="noreferrer">
+        واتساب
+      </a>
+    </header>
+
+    <main class="subpage-main">
+      <section class="section hero subpage-hero">
+        <div class="hero-content">
+          <span class="eyebrow reveal">صفحة المنتجات</span>
+          <h1 class="reveal">
+            <span class="hero-title-line">منتجات خط ستة</span>
+            <span class="hero-title-sub">تصنيفات واضحة</span>
+            <span class="hero-title-accent">وطلب أسرع للعميل</span>
+          </h1>
+          <p class="hero-desc reveal">
+            رتّبنا المنتجات في صفحة مستقلة حتى يصل العميل بسرعة إلى ما يريده:
+            يختار التصنيف، يشاهد المنتجات، ثم يضغط طلب المنتج ليتم تعبئة النموذج بشكل واضح ومنظم.
+          </p>
+          <div class="hero-actions reveal">
+            <a class="btn btn-primary" href="#productsGrid">ابدأ التصفح</a>
+            <a class="btn btn-secondary" href="#orderFormSection">اطلب الآن</a>
+          </div>
+        </div>
+
+        <div class="hero-preview-card reveal delay-1">
+          <img src="./assets/photos/printing.jpg" alt="منتجات خط ستة" />
+          <div class="hero-preview-copy">
+            <strong>واجهة منتجات جاهزة للبيع والطلبات</strong>
+            <span>تصنيفات + بطاقات + نموذج طلب + ربط مباشر بواتساب</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header reveal">
+          <span class="eyebrow">التصنيفات</span>
+          <h2>اختر القسم المناسب</h2>
+          <p>يمكن للعميل فلترة المنتجات بسهولة والانتقال مباشرة لما يحتاجه.</p>
+        </div>
+
+        <div class="filter-bar reveal">
+          <button class="filter-btn active" type="button" data-filter="all">الكل</button>
+          <button class="filter-btn" type="button" data-filter="printing">الطباعة</button>
+          <button class="filter-btn" type="button" data-filter="embroidery">التطريز</button>
+          <button class="filter-btn" type="button" data-filter="flags">الأعلام</button>
+          <button class="filter-btn" type="button" data-filter="awards">الميداليات</button>
+        </div>
+
+        <div id="productsGrid" class="products-grid">
+          <article class="product-card reveal" data-category="printing">
+            <img src="./assets/photos/printing.jpg" alt="طباعة أطقم رياضية" />
+            <div class="product-body">
+              <span class="product-category">الطباعة</span>
+              <h3>طباعة أطقم رياضية</h3>
+              <p>طباعة أسماء وأرقام وشعارات للأندية والمدارس والبطولات.</p>
+              <ul>
+                <li>مناسب للفرق والفعاليات</li>
+                <li>خيارات تخصيص متعددة</li>
+                <li>طلب كميات متنوعة</li>
+              </ul>
+              <div class="product-actions">
+                <button class="btn btn-primary product-order-btn" type="button" data-product="طباعة أطقم رياضية" data-category-name="الطباعة">اطلب المنتج</button>
+                <a class="service-link" href="./services/printing.html">تفاصيل الخدمة</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card reveal delay-1" data-category="printing">
+            <img src="./assets/photos/printing.jpg" alt="طباعة تيشيرتات فعاليات" />
+            <div class="product-body">
+              <span class="product-category">الطباعة</span>
+              <h3>طباعة تيشيرتات فعاليات</h3>
+              <p>حل مناسب للمعارض والمناسبات والمؤسسات والمدارس.</p>
+              <ul>
+                <li>شعار وهوية مناسبة للحدث</li>
+                <li>إمكانية تخصيص لكل فريق</li>
+                <li>سرعة في التجهيز</li>
+              </ul>
+              <div class="product-actions">
+                <button class="btn btn-primary product-order-btn" type="button" data-product="طباعة تيشيرتات فعاليات" data-category-name="الطباعة">اطلب المنتج</button>
+                <a class="service-link" href="./services/printing.html">تفاصيل الخدمة</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card reveal delay-2" data-category="embroidery">
+            <img src="./assets/photos/embroidery.jpg" alt="تطريز شعارات الشركات" />
+            <div class="product-body">
+              <span class="product-category">التطريز</span>
+              <h3>تطريز شعارات الشركات</h3>
+              <p>لليونيفورم والزي الرسمي بلمسة احترافية وفخمة.</p>
+              <ul>
+                <li>مناسب للزي الرسمي</li>
+                <li>ثبات أعلى ومظهر رسمي</li>
+                <li>تنفيذ للشعارات والأسماء</li>
+              </ul>
+              <div class="product-actions">
+                <button class="btn btn-primary product-order-btn" type="button" data-product="تطريز شعارات الشركات" data-category-name="التطريز">اطلب المنتج</button>
+                <a class="service-link" href="./services/embroidery.html">تفاصيل الخدمة</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card reveal" data-category="embroidery">
+            <img src="./assets/photos/embroidery.jpg" alt="تطريز ملابس الفرق" />
+            <div class="product-body">
+              <span class="product-category">التطريز</span>
+              <h3>تطريز ملابس الفرق</h3>
+              <p>شعارات الأندية والجهات الرياضية على الملابس والجاكيتات والقبعات.</p>
+              <ul>
+                <li>مظهر احترافي</li>
+                <li>مناسب للكميات</li>
+                <li>تخصيص حسب الهوية</li>
+              </ul>
+              <div class="product-actions">
+                <button class="btn btn-primary product-order-btn" type="button" data-product="تطريز ملابس الفرق" data-category-name="التطريز">اطلب المنتج</button>
+                <a class="service-link" href="./services/embroidery.html">تفاصيل الخدمة</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card reveal delay-1" data-category="flags">
+            <img src="./assets/photos/flags.jpg" alt="أعلام السعودية" />
+            <div class="product-body">
+              <span class="product-category">الأعلام</span>
+              <h3>أعلام السعودية</h3>
+              <p>أعلام رسمية للجهات والمقار والفعاليات الوطنية والرياضية.</p>
+              <ul>
+                <li>مقاسات متعددة</li>
+                <li>تشطيب مناسب للعرض</li>
+                <li>مناسب للجهات والفعاليات</li>
+              </ul>
+              <div class="product-actions">
+                <button class="btn btn-primary product-order-btn" type="button" data-product="أعلام السعودية" data-category-name="الأعلام">اطلب المنتج</button>
+                <a class="service-link" href="./services/flags.html">تفاصيل الخدمة</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card reveal delay-2" data-category="flags">
+            <img src="./assets/photos/flags.jpg" alt="رايات شركات ومناسبات" />
+            <div class="product-body">
+              <span class="product-category">الأعلام</span>
+              <h3>رايات شركات ومناسبات</h3>
+              <p>رايات مخصصة بالشعار والهوية للمناسبات والحملات والبطولات.</p>
+              <ul>
+                <li>هوية مخصصة للعميل</li>
+                <li>مناسب للداخل والخارج</li>
+                <li>تصميم وتنفيذ</li>
+              </ul>
+              <div class="product-actions">
+                <button class="btn btn-primary product-order-btn" type="button" data-product="رايات شركات ومناسبات" data-category-name="الأعلام">اطلب المنتج</button>
+                <a class="service-link" href="./services/flags.html">تفاصيل الخدمة</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card reveal" data-category="awards">
+            <img src="./assets/photos/medals.jpg" alt="ميداليات بطولات" />
+            <div class="product-body">
+              <span class="product-category">الميداليات</span>
+              <h3>ميداليات بطولات</h3>
+              <p>ميداليات تكريم مميزة للمسابقات والأنشطة والجهات الرياضية.</p>
+              <ul>
+                <li>تصاميم جاهزة أو مخصصة</li>
+                <li>مناسبة للبطولات المدرسية</li>
+                <li>إمكانية إضافة شعار</li>
+              </ul>
+              <div class="product-actions">
+                <button class="btn btn-primary product-order-btn" type="button" data-product="ميداليات بطولات" data-category-name="الميداليات">اطلب المنتج</button>
+                <a class="service-link" href="./services/medals.html">تفاصيل الخدمة</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card reveal delay-1" data-category="awards">
+            <img src="./assets/photos/medals.jpg" alt="دروع وشهادات تكريم" />
+            <div class="product-body">
+              <span class="product-category">الميداليات</span>
+              <h3>دروع وشهادات تكريم</h3>
+              <p>تنفيذ منتجات تكريم ترفع قيمة المناسبة وتعطي مظهرًا احترافيًا.</p>
+              <ul>
+                <li>مناسب للجهات والمدارس</li>
+                <li>خيارات تشطيب متنوعة</li>
+                <li>تنسيق مع هوية المناسبة</li>
+              </ul>
+              <div class="product-actions">
+                <button class="btn btn-primary product-order-btn" type="button" data-product="دروع وشهادات تكريم" data-category-name="الميداليات">اطلب المنتج</button>
+                <a class="service-link" href="./services/medals.html">تفاصيل الخدمة</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card reveal delay-2" data-category="printing">
+            <img src="./assets/photos/printing.jpg" alt="طباعة يونيفورم مدارس" />
+            <div class="product-body">
+              <span class="product-category">الطباعة</span>
+              <h3>طباعة يونيفورم مدارس</h3>
+              <p>طباعة للمدارس والأكاديميات والبرامج الموسمية بأنواع متعددة.</p>
+              <ul>
+                <li>مناسب للكميات</li>
+                <li>ألوان وشعارات حسب الطلب</li>
+                <li>تنفيذ واضح ومتناسق</li>
+              </ul>
+              <div class="product-actions">
+                <button class="btn btn-primary product-order-btn" type="button" data-product="طباعة يونيفورم مدارس" data-category-name="الطباعة">اطلب المنتج</button>
+                <a class="service-link" href="./services/printing.html">تفاصيل الخدمة</a>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="orderFormSection" class="section">
+        <div class="order-panel reveal">
+          <div>
+            <span class="eyebrow">الطلب</span>
+            <h2>أرسل طلبك بشكل مرتب</h2>
+            <p class="hero-desc">
+              عند الضغط على "اطلب المنتج" سيتم تعبئة اسم المنتج والتصنيف تلقائيًا، ثم يكمّل العميل بياناته
+              وتصل الرسالة إلى واتساب بشكل منظم يسهل التعامل معها.
+            </p>
+
+            <div class="order-points">
+              <div class="order-point">
+                <strong>1) اختر المنتج</strong>
+                <span>من نفس الصفحة بدون تشتيت.</span>
+              </div>
+              <div class="order-point">
+                <strong>2) عبّئ البيانات</strong>
+                <span>الاسم، الجوال، الخدمة، والتفاصيل المطلوبة.</span>
+              </div>
+              <div class="order-point">
+                <strong>3) أرسل الطلب</strong>
+                <span>تُفتح رسالة واتساب جاهزة باسم المنتج والتصنيف.</span>
+              </div>
+            </div>
+          </div>
+
+          <form id="quoteForm" class="quote-form">
+            <div class="form-header">
+              <h3>طلب منتج / عرض سعر</h3>
+              <p>املأ النموذج وسيتم فتح واتساب بالبيانات الجاهزة</p>
+            </div>
+            <div class="form-group">
+              <input type="text" name="name" placeholder="الاسم الكامل" required />
+            </div>
+            <div class="form-group">
+              <input type="tel" name="phone" placeholder="رقم الجوال" required />
+            </div>
+            <div class="form-group">
+              <select name="service" required>
+                <option value="">اختر نوع الطلب</option>
+                <option>طلب منتج</option>
+                <option>عرض سعر</option>
+                <option>تنفيذ مخصص</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <input type="text" name="productCategory" placeholder="التصنيف" readonly />
+            </div>
+            <div class="form-group">
+              <input type="text" name="productName" placeholder="اسم المنتج" readonly />
+            </div>
+            <div class="form-group">
+              <textarea name="details" placeholder="مثلاً: الكمية، المقاس، الألوان، موعد التنفيذ..." rows="5"></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">إرسال الطلب عبر واتساب</button>
+            <p class="helper-text">يمكنك ترك المنتج فارغًا إذا كنت ترغب بطلب مخصص غير موجود ضمن القائمة.</p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <span class="brand-mark">
+            <svg width="20" height="20" viewBox="0 0 28 28" fill="none">
+              <path d="M6 22L14 6L22 22" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 16H19" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div>
+            <strong>خط ستة</strong>
+            <span>للطباعة والرياضة</span>
+          </div>
+        </div>
+        <p>جميع الحقوق محفوظة © 2026 خط ستة</p>
+      </div>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
