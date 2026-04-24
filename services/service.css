@@ -263,17 +263,63 @@
   .service-grid-4 {
     grid-template-columns: repeat(2, 1fr);
   }
+  .service-hero {
+    text-align: center;
+  }
+  .service-actions,
+  .service-points {
+    justify-content: center;
+  }
+  .service-hero-content p {
+    max-width: none;
+  }
 }
 
 @media (max-width: 768px) {
   .service-page { padding-top: 90px; }
   .service-hero { text-align: center; }
-  .service-hero-content p { max-width: none; }
+  .service-hero-content h1 {
+    font-size: clamp(2rem, 9vw, 3rem);
+  }
   .service-actions,
   .service-points { justify-content: center; }
+  .service-actions .btn {
+    width: 100%;
+  }
   .service-media { min-height: 500px; }
+  .service-media img {
+    inset: 1rem 1rem 4.3rem;
+    width: calc(100% - 2rem);
+    height: calc(100% - 5.3rem);
+  }
+  .service-summary-grid,
+  .service-grid-3,
+  .flow-list {
+    grid-template-columns: 1fr;
+  }
   .service-grid-4 { grid-template-columns: 1fr; }
   .service-float { min-width: 150px; }
+}
+
+@media (max-width: 480px) {
+  .service-page { padding-top: 82px; }
+  .service-media {
+    min-height: 420px;
+    border-radius: 24px;
+  }
+  .service-box,
+  .service-cta {
+    border-radius: 22px;
+    padding: 1.2rem;
+  }
+  .service-float {
+    min-width: 132px;
+    padding: .75rem .8rem;
+  }
+  .flow-node {
+    width: 145px;
+    padding: .8rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
