@@ -30,7 +30,8 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: android-actions/setup-android@v3
+      - name: Android SDK packages (SDK is preinstalled on the runner)
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" > /dev/null
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Unit tests
@@ -42,7 +43,7 @@ jobs:
       - name: Verify APK
         run: |
           APK=app/build/outputs/apk/release/app-release.apk
-          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          BT="$ANDROID_HOME/build-tools/35.0.0"
           "$BT/apksigner" verify --verbose "$APK"
           "$BT/aapt2" dump badging "$APK" | head -5
           "$BT/zipalign" -c -P 16 -v 4 "$APK" | tail -1
