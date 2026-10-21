@@ -73,16 +73,23 @@ class ScanActivity : BaseActivity() {
         }
     }
 
+    private var askedPermission = false
+    @Volatile private var active = false
+
     override fun onResume() {
         super.onResume()
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.CAMERA), 1)
+            // Ask once; after "Don't allow" just explain (asking again in onResume would loop).
+            if (!askedPermission) { askedPermission = true; requestPermissions(arrayOf(Manifest.permission.CAMERA), 1) }
+            else hint.text = getString(R.string.camera_denied)
             return
         }
+        active = true
         startWhenReady()
     }
 
     override fun onPause() {
+        active = false
         closeCamera()
         super.onPause()
     }
@@ -119,7 +126,10 @@ class ScanActivity : BaseActivity() {
         val size = sizes.filter { it.width * 3 == it.height * 4 && it.width <= 1280 }.maxByOrNull { it.width } ?: sizes.minByOrNull { Math.abs(it.width - 1280) } ?: Size(640, 480)
         try {
             cm.openCamera(id, object : CameraDevice.StateCallback() {
-                override fun onOpened(cd: CameraDevice) { camera = cd; startSession(cd, size) }
+                override fun onOpened(cd: CameraDevice) {
+                    if (!active) { cd.close(); return }
+                    camera = cd; startSession(cd, size)
+                }
                 override fun onDisconnected(cd: CameraDevice) { cd.close() }
                 override fun onError(cd: CameraDevice, error: Int) { cd.close(); App.main.post { hint.text = getString(R.string.camera_unavailable) } }
             }, handler)
@@ -130,7 +140,7 @@ class ScanActivity : BaseActivity() {
 
     @Suppress("DEPRECATION")
     private fun startSession(cd: CameraDevice, size: Size) {
-        val st = texture.surfaceTexture ?: return
+        val st = texture.surfaceTexture ?: run { cd.close(); camera = null; return }
         st.setDefaultBufferSize(size.width, size.height)
         val preview = Surface(st)
         val ir = ImageReader.newInstance(size.width, size.height, ImageFormat.YUV_420_888, 2)

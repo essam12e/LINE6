@@ -7,7 +7,7 @@ import java.util.concurrent.CopyOnWriteArraySet
 object HostState {
     enum class Phase { STOPPED, RUNNING, PROJECTION_STOPPED }
 
-    data class Approval(val name: String, val digits: String, val fpShort: String)
+    data class Approval(val name: String, val digits: String, val fpShort: String, val id: Int)
 
     @Volatile var phase = Phase.STOPPED
     @Volatile var controllerName: String? = null

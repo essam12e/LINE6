@@ -89,8 +89,8 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
             ACTION_STOP -> { stopEverything(); return START_NOT_STICKY }
             ACTION_OPEN_PAIRING -> server?.openPairing()
             ACTION_CLOSE_PAIRING -> server?.closePairing()
-            ACTION_APPROVE -> answerApproval(true)
-            ACTION_DENY -> answerApproval(false)
+            ACTION_APPROVE -> answerApproval(true, intent.getIntExtra(EXTRA_REQ, -1))
+            ACTION_DENY -> answerApproval(false, intent.getIntExtra(EXTRA_REQ, -1))
             null -> { stopSelf(); return START_NOT_STICKY } // restarted by the system without a projection grant
         }
         return START_NOT_STICKY
@@ -219,6 +219,7 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         if (s.offerVideo(data, flags, ptsUs)) encoder?.requestKeyFrame()
     }
 
+    /** Called only after the encoder could not be rebuilt on the existing capture; capture must restart. */
     override fun onEncoderError(e: Throwable) {
         HostState.lastError = getString(R.string.err_encoder)
         HostState.changed()
@@ -227,7 +228,10 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
 
     // ------------------------------------------------------------------ server listener
 
-    override fun onSessionStarted(session: HostServer.Session) {
+    /** Session start/end callbacks come from different connection threads; serialise them. */
+    private val sessionLock = Any()
+
+    override fun onSessionStarted(session: HostServer.Session): Unit = synchronized(sessionLock) {
         HostState.controllerName = session.peerName
         HostState.changed()
         acquireLocks()
@@ -240,8 +244,9 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         updateNotification()
     }
 
-    override fun onSessionEnded(session: HostServer.Session) {
-        if (server?.session != null) return // replaced by a newer session
+    override fun onSessionEnded(session: HostServer.Session): Unit = synchronized(sessionLock) {
+        val current = server?.session
+        if (current != null && current !== session && !current.isClosed) return // a newer session is live
         HostState.controllerName = null
         HostState.changed()
         ControlService.instance?.let { it.endAllGestures(); it.setKeepAwake(false) }
@@ -294,11 +299,12 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
 
     override fun askApproval(name: String, digits: String, fpShort: String): Boolean {
         val latch = CountDownLatch(1)
+        val req = ++approvalSeq
         approvalLatch = latch
         approvalAnswer = false
-        HostState.pendingApproval = HostState.Approval(name, digits, fpShort)
+        HostState.pendingApproval = HostState.Approval(name, digits, fpShort, req)
         HostState.changed()
-        showApprovalNotification(name, digits)
+        showApprovalNotification(name, digits, req)
         val answered = latch.await(60, TimeUnit.SECONDS)
         HostState.pendingApproval = null
         HostState.changed()
@@ -306,7 +312,11 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         return answered && approvalAnswer
     }
 
-    private fun answerApproval(ok: Boolean) {
+    @Volatile private var approvalSeq = 0
+
+    /** [req] must match the pending request, so a late tap can't approve a different device. */
+    private fun answerApproval(ok: Boolean, req: Int = approvalSeq) {
+        if (req != approvalSeq) return
         approvalAnswer = ok
         approvalLatch?.countDown()
         approvalLatch = null
@@ -463,10 +473,14 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         getSystemService(NotificationManager::class.java)!!.notify(NOTIF_ID, buildNotification())
     }
 
-    private fun showApprovalNotification(name: String, digits: String) {
+    private fun showApprovalNotification(name: String, digits: String, req: Int) {
         fun svc(action: String, rc: Int) = PendingIntent.getService(
-            this, rc, Intent(this, HostService::class.java).setAction(action), PendingIntent.FLAG_IMMUTABLE,
+            this, rc, Intent(this, HostService::class.java).setAction(action).putExtra(EXTRA_REQ, req),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
+        // "Allow" must not work from the lock screen.
+        val allow = Notification.Action.Builder(null, getString(R.string.allow), svc(ACTION_APPROVE, 4))
+        if (Build.VERSION.SDK_INT >= 31) allow.setAuthenticationRequired(true)
         val open = PendingIntent.getActivity(this, 3, Intent(this, HostActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val n = Notification.Builder(this, App.CH_APPROVAL)
             .setSmallIcon(R.drawable.ic_stat_mirror)
@@ -475,7 +489,7 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
             .setStyle(Notification.BigTextStyle().bigText(getString(R.string.approve_body, name, digits)))
             .setContentIntent(open)
             .setAutoCancel(true)
-            .addAction(Notification.Action.Builder(null, getString(R.string.allow), svc(ACTION_APPROVE, 4)).build())
+            .addAction(allow.build())
             .addAction(Notification.Action.Builder(null, getString(R.string.deny), svc(ACTION_DENY, 5)).build())
             .setCategory(Notification.CATEGORY_CALL)
             .build()
@@ -495,6 +509,7 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         const val ACTION_DENY = "sa.nitaaq.mirror.DENY"
         const val EXTRA_CODE = "code"
         const val EXTRA_DATA = "data"
+        const val EXTRA_REQ = "req"
         private const val NOTIF_ID = 10
         private const val APPROVAL_NOTIF_ID = 11
         private const val IDLE_BITRATE = 250_000
@@ -503,9 +518,9 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         @Volatile var running: HostService? = null
             private set
 
-        fun send(ctx: Context, action: String) {
+        fun send(ctx: Context, action: String, req: Int = -1) {
             if (running == null) return
-            ctx.startService(Intent(ctx, HostService::class.java).setAction(action))
+            ctx.startService(Intent(ctx, HostService::class.java).setAction(action).putExtra(EXTRA_REQ, req))
         }
     }
 }

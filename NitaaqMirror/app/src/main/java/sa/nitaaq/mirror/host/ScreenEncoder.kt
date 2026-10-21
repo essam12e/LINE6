@@ -161,26 +161,32 @@ class ScreenEncoder(
         p = fitToCapabilities(info, p)
         val newCodec = MediaCodec.createByCodecName(info.name)
         val format = buildFormat(p, full = true)
+        val surface: Surface
         try {
-            newCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
-        } catch (e: Exception) {
-            // Some encoders reject optional keys; retry with the essentials only.
-            newCodec.reset()
-            newCodec.configure(buildFormat(p, full = false), null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
-        }
-        val surface = newCodec.createInputSurface()
-        newCodec.start()
+            try {
+                newCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+            } catch (e: Exception) {
+                // Some encoders reject optional keys; retry with the essentials only.
+                newCodec.reset()
+                newCodec.configure(buildFormat(p, full = false), null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+            }
+            surface = newCodec.createInputSurface()
+            newCodec.start()
 
-        // Swap: point the display at the new encoder first, then drop the old one.
-        val vd = virtualDisplay
-        if (vd == null) {
-            virtualDisplay = projection.createVirtualDisplay(
-                "NITAAQ Mirror", p.width, p.height, dpi,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, surface, null, handler,
-            )
-        } else {
-            vd.resize(p.width, p.height, dpi)
-            vd.surface = surface
+            // Swap: point the display at the new encoder first, then drop the old one.
+            val vd = virtualDisplay
+            if (vd == null) {
+                virtualDisplay = projection.createVirtualDisplay(
+                    "NITAAQ Mirror", p.width, p.height, dpi,
+                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, surface, null, handler,
+                )
+            } else {
+                vd.resize(p.width, p.height, dpi)
+                vd.surface = surface
+            }
+        } catch (e: Throwable) {
+            try { newCodec.release() } catch (_: Exception) {}
+            throw e
         }
         releaseCodec()
         codec = newCodec
@@ -263,15 +269,26 @@ class ScreenEncoder(
                     }
                     if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) break
                 }
-            } catch (e: IllegalStateException) {
-                // Codec released during reconfiguration: expected.
             } catch (e: Throwable) {
-                if (running && codec === c) sink.onEncoderError(e)
+                // Released during reconfiguration is expected; anything else (e.g. codec reclaimed by the
+                // camera app: CodecException is an IllegalStateException) is a real failure.
+                if (running && codec === c) onDrainFailed(e)
             }
         }, "nm-encoder-drain")
         t.priority = Thread.MAX_PRIORITY
         drain = t
         t.start()
+    }
+
+    private var recoveries = 0
+
+    /** Rebuild the encoder on the same VirtualDisplay (no new capture consent needed); give up after 3 tries. */
+    private fun onDrainFailed(e: Throwable) {
+        handler.post {
+            if (!running) return@post
+            if (++recoveries > 3) { sink.onEncoderError(e); return@post }
+            try { configureCodec() } catch (t: Throwable) { sink.onEncoderError(t) }
+        }
     }
 
     private fun releaseCodec() {

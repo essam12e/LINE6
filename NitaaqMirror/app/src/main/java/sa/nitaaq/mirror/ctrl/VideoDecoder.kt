@@ -127,8 +127,12 @@ class VideoDecoder(private val onNeedKeyFrame: () -> Unit) {
                     lowLatency = true
                 }
             }
-            c.configure(format, s, null, 0)
-            c.start()
+            try {
+                c.configure(format, s, null, 0)
+                c.start()
+            } catch (e: Exception) {
+                c.release(); throw e
+            }
             codec = c
             startOutput(c)
             true

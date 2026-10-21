@@ -73,7 +73,7 @@
     <string name="scan_qr">مسح رمز QR</string>
     <string name="manual_entry">إدخال يدوي</string>
     <string name="manual_entry_instead">الإدخال اليدوي بدلًا من المسح</string>
-    <string name="manual_desc">اكتب العنوان والرمز الظاهرين على الجهاز المضيف تحت رمز QR.</string>
+    <string name="manual_desc">اكتب العنوان والرمز الظاهرين على الجهاز المضيف تحت رمز QR. الإدخال اليدوي أقل حماية من مسح QR: قبل الضغط على «سماح» في المضيف، تأكد أن رقم التحقق متطابق على الشاشتين.</string>
     <string name="manual_ip_hint">العنوان، مثال 192.168.1.20</string>
     <string name="manual_code_hint">رمز الاقتران (8 أرقام)</string>
     <string name="manual_invalid">تأكد من العنوان ومن أن الرمز 8 أرقام.</string>

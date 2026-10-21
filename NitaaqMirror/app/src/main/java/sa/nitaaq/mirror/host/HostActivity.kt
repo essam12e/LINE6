@@ -223,8 +223,8 @@ class HostActivity : BaseActivity() {
             .setTitle(R.string.approve_title)
             .setMessage(getString(R.string.approve_dialog, a.name, a.digits, a.fpShort))
             .setCancelable(false)
-            .setPositiveButton(R.string.allow) { _, _ -> HostService.send(this, HostService.ACTION_APPROVE) }
-            .setNegativeButton(R.string.deny) { _, _ -> HostService.send(this, HostService.ACTION_DENY) }
+            .setPositiveButton(R.string.allow) { _, _ -> HostService.send(this, HostService.ACTION_APPROVE, a.id) }
+            .setNegativeButton(R.string.deny) { _, _ -> HostService.send(this, HostService.ACTION_DENY, a.id) }
             .show()
     }
 

@@ -72,7 +72,7 @@
     <string name="scan_qr">Scan QR code</string>
     <string name="manual_entry">Enter manually</string>
     <string name="manual_entry_instead">Enter manually instead</string>
-    <string name="manual_desc">Type the address and code shown under the QR code on the host.</string>
+    <string name="manual_desc">Type the address and code shown under the QR code on the host. Manual entry is less protected than scanning the QR: before tapping “Allow” on the host, make sure the verification number matches on both screens.</string>
     <string name="manual_ip_hint">Address, e.g. 192.168.1.20</string>
     <string name="manual_code_hint">Pairing code (8 digits)</string>
     <string name="manual_invalid">Check the address and that the code has 8 digits.</string>

@@ -210,6 +210,7 @@ object RemoteSession {
             val identity = Identity.get(ctx)
             var trust: PinnedTrustManager? = null
             var peerVerified = false
+            var welcomed = false
             try {
                 var host = t.host
                 var port = t.port
@@ -227,7 +228,7 @@ object RemoteSession {
                 val sslCtx = Tls.context(identity, tm)
                 val raw = Socket()
                 raw.tcpNoDelay = true
-                raw.connect(InetSocketAddress(host, port), 3000)
+                try { raw.connect(InetSocketAddress(host, port), 3000) } catch (e: Exception) { raw.close(); throw e }
                 val s = sslCtx.socketFactory.createSocket(raw, host, port, true) as SSLSocket
                 socket = s
                 if (closed) { s.close(); return }
@@ -249,6 +250,7 @@ object RemoteSession {
                 val w = FrameIO.read(input)
                 when (w.type) {
                     Msg.WELCOME -> {
+                        welcomed = true
                         val welcome = Welcome.decode(w.payload)
                         hostName = welcome.hostName
                         val store = TrustedStore.get(ctx)
@@ -280,7 +282,9 @@ object RemoteSession {
                     t.fpHex != null && seen != null && Fingerprint.hex(seen) != t.fpHex -> FailReason.CERT_MISMATCH
                     // The host refused our certificate: pairing screen closed, or this device is no longer trusted.
                     peerVerified && t.pairCode != null -> FailReason.PAIRING_CLOSED
-                    peerVerified && !everConnected -> FailReason.REJECTED
+                    // TLS 1.3: the host checks our certificate after the handshake, so a refusal shows up as an
+                    // alert before WELCOME, even when this host used to trust us.
+                    peerVerified && !welcomed -> FailReason.REJECTED
                     else -> null // transient (e.g. Wi-Fi dropped mid-handshake): retry
                 }
                 if (reason != null) { sm.failed(id, reason); notifyState(); close(); return }
