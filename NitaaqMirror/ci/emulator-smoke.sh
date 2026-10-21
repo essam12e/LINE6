@@ -33,7 +33,8 @@ except Exception: sys.exit(1)
 wanted = sys.argv[2:]
 hits = [n for n in root.iter('node')
         if any(w in ((n.get('text') or '') + ' ' + (n.get('content-desc') or '')) for w in wanted)]
-hits.sort(key=lambda n: n.get('clickable') != 'true')  # prefer buttons over labels with the same text
+# Exact text first (a button), then clickable nodes, then any label containing the text.
+hits.sort(key=lambda n: ((n.get('text') or '').strip() not in wanted, n.get('clickable') != 'true'))
 if not hits: sys.exit(1)
 x1, y1, x2, y2 = map(int, re.findall(r'\d+', hits[0].get('bounds')))
 print((x1 + x2) // 2, (y1 + y2) // 2)
@@ -167,7 +168,9 @@ if [ ${#F[@]} -ge 3 ]; then
   adb shell cmd statusbar collapse; sleep 6
   shot e2e-5-remote
   ui_dump
-  if adb logcat -d | grep -q "nm-decoder-out\|MediaCodec" ; then info "decoder activity in logcat"; fi
+  sleep 6
+  R=$(adb logcat -d -s NitaaqMirror:I | grep -o 'rendered=[0-9]*' | tail -1 | tr -dc 0-9)
+  if [ -n "$R" ] && [ "$R" -gt 0 ]; then pass "video frames rendered on the controller: $R"; else fail "no video frames rendered (${R:-no log})"; fi
   if adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | grep -q RemoteActivity; then pass "remote screen open"; else info "remote screen not on top"; fi
   # Execute a navigation action on the host through the controller toolbar: Home.
   # The live video never lets uiautomator see an idle screen, so tap the toolbar's Home button by geometry:

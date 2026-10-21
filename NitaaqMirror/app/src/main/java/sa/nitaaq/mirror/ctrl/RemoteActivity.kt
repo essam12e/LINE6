@@ -70,6 +70,7 @@ class RemoteActivity : BaseActivity(), RemoteSession.Listener, SurfaceHolder.Cal
     private var wifiLock: WifiManager.WifiLock? = null
     private var lastRendered = 0L
     private var stalledSeconds = 0
+    private var tickCount = 0
     private var transientMessage: String? = null
     private var transientUntil = 0L
 
@@ -442,6 +443,8 @@ class RemoteActivity : BaseActivity(), RemoteSession.Listener, SurfaceHolder.Cal
 
     private fun tick() {
         val rendered = RemoteSession.decoder.renderedFrames
+        // Counters only (no content): lets testers confirm the stream from logcat.
+        if (++tickCount % 5 == 0) android.util.Log.i("NitaaqMirror", "video rendered=$rendered dropped=${RemoteSession.decoder.droppedFrames}")
         stalledSeconds = if (rendered == lastRendered && RemoteSession.state == LinkState.Connected) stalledSeconds + 1 else 0
         lastRendered = rendered
         if (diag.visibility == View.VISIBLE) {
