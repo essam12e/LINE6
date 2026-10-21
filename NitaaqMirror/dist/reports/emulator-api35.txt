@@ -1,0 +1,15 @@
+Emulator: Android 15 (API 35), x86_64
+PASS  [controller] install
+PASS  [controller] launch (no crash)
+PASS  [controller] open all main screens
+PASS  [controller] no accessibility service declared
+PASS  [full] install
+PASS  [full] launch (no crash)
+PASS  [full] open all main screens
+INFO  end-to-end loopback test (full edition)
+PASS  accessibility service binds
+PASS  screen-capture foreground service running
+FAIL  pairing code not found on host screen
+FAIL  manual entry fields not found
+PASS  no crash during end-to-end
+CRITICAL=0

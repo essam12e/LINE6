@@ -1,0 +1,18 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=NITAAQ Mirror temporary key
+Signer #1 certificate SHA-256 digest: 01ae174826aec19cfdd23008ef4e91c0b1585de99e0e3d4af2742804a066bba2
+Signer #1 certificate SHA-1 digest: a07e212655f113b31454481c552ab4b7accc8a19
+Signer #1 certificate MD5 digest: 980a74288fb264351042792e56f20fb0
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 3072
+Signer #1 public key SHA-256 digest: 4e38f283c35432ed928a057ffca18868f6906e97dcf0fd37fa593f4afc01c448
+Signer #1 public key SHA-1 digest: 1f917e4096b8798afed4bf0b1f905ae3497be8e7
+Signer #1 public key MD5 digest: 51ed4bfcbdab88b176e4d924bde5ff2c
+Verification succesful

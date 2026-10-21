@@ -1,0 +1,15 @@
+Emulator: Android 12 (API 31), x86_64
+PASS  [controller] install
+PASS  [controller] launch (no crash)
+PASS  [controller] open all main screens
+PASS  [controller] no accessibility service declared
+PASS  [full] install
+PASS  [full] launch (no crash)
+PASS  [full] open all main screens
+INFO  end-to-end loopback test (full edition)
+PASS  accessibility service binds
+PASS  screen-capture foreground service running
+PASS  pairing code shown on host
+FAIL  manual entry fields not found
+PASS  no crash during end-to-end
+CRITICAL=0
