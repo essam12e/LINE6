@@ -1,2 +1,2 @@
-f5b0ca054a36b4847b3537a7e99d68d6c22882ad6bc9639756b9512418c4eae9  NitaaqMirror-0.1.2-controller-temp-key.apk
-e359e53de63de740ea6ae46af9a69a1a41ed4db9fa12daeb969b6f5a76962a60  NitaaqMirror-0.1.2-full-temp-key.apk
+356cfcecaaae868492b166f56774c0e74e09a5e0d6595fc202da4a1ae9ac4012  NitaaqMirror-0.1.2-controller-temp-key.apk
+962d2b511a96092bb6c673166ca95ab346fb2441571d0dbb3241e6ba55db2f26  NitaaqMirror-0.1.2-full-temp-key.apk

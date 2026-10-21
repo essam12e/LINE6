@@ -10,10 +10,10 @@ INFO  end-to-end loopback test (full edition)
 PASS  accessibility service binds
 PASS  screen-capture foreground service running
 PASS  pairing code shown on host
-PASS  approval request accepted (notification)
-INFO  decoder activity in logcat
+PASS  approval request accepted (in-app dialog)
+FAIL  no video frames rendered (0)
 PASS  remote screen open
 INFO  tapping toolbar Home at 209,2184 (screen 1080x2400, density 420)
-FAIL  Home did not leave the app
+PASS  Home executed on host via accessibility
 PASS  no crash during end-to-end
 CRITICAL=0
