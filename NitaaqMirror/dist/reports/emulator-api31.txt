@@ -13,7 +13,7 @@ PASS  pairing code shown on host
 PASS  approval request accepted (notification)
 INFO  decoder activity in logcat
 PASS  remote screen open
-INFO  tapping toolbar Home at 34,558 (screen 320x640, density 160)
+INFO  tapping toolbar Home at 209,2184 (screen 1080x2400, density 420)
 FAIL  Home did not leave the app
 PASS  no crash during end-to-end
 CRITICAL=0
