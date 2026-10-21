@@ -202,6 +202,10 @@ fi
 if crashed; then fail "crash during end-to-end"; adb logcat -d -b crash > "$OUT/crash-e2e.txt"; CRIT=1; else pass "no crash during end-to-end"; fi
 adb logcat -d > "$OUT/logcat.txt" 2>/dev/null || true
 echo "CRITICAL=$CRIT" >> "$REPORT"
+echo "=== video counters ==="; cat "$OUT/video-counters.txt" 2>/dev/null
+echo "=== codec errors (app process) ==="
+APID=$(adb shell pidof $PKG | tr -d '\r')
+grep -E " ${APID:-0} .* [EW] " "$OUT/logcat.txt" | grep -iE "codec|media|surface|nitaaq" | tail -60
 echo "=== crash buffer ==="; adb logcat -d -b crash 2>/dev/null | grep -v "^---------" | head -120
 echo "=== FATAL / AndroidRuntime ==="; grep -A40 "FATAL EXCEPTION" "$OUT/logcat.txt" | head -150
 cat "$REPORT"
