@@ -1,1 +1,1 @@
-62b9126bd7c89b98d00878f0d0b01d81e5927e4a313bd7c6140806a7594c89bf  NitaaqMirror-0.1.0-test.apk
+a9c12f98547f9faf54553615b4ca1fdb06ca13b64d6a96ccad928b154eecd018  NitaaqMirror-0.1.1-test.apk

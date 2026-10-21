@@ -42,7 +42,7 @@ gradle assembleApk test verifyApk         # Gradle 8.14.x + JDK 17/21
 # الناتج: litebuild/build/outputs/nitaaq-mirror.apk
 ```
 
-خطوات المسار: `aapt2 compile/link` ← Kotlin (مقابل android.jar، مع `-no-jdk`) ← `dx` ← zip مع محاذاة 4 بايت لـ`resources.arsc` ← توقيع v2 عبر `apksig` ← تحقق: `ApkVerifier` و`baksmali`، والتأكد من خلو كود التطبيق من `invokedynamic`.
+خطوات المسار: `aapt2 compile/link` ← Kotlin (مقابل android.jar، مع `-no-jdk`) ← ProGuard 7.6.1 (تقليص فقط) ← `dx` ← zip مع محاذاة 4 بايت لـ`resources.arsc` ← توقيع v2 عبر `apksig` ← تحقق: `ApkVerifier` و`baksmali`، والتأكد من خلو كود التطبيق من `invokedynamic`.
 
 | أداة | الإصدار | المصدر |
 |---|---|---|
@@ -54,8 +54,9 @@ gradle assembleApk test verifyApk         # Gradle 8.14.x + JDK 17/21
 | aapt2 | 2.20-15009934 | npm `aaptjs3@2.0.2` (Apache-2.0) |
 | dx | 16.0.1 | Maven Central `com.jakewharton.android.repackaged:dalvik-dx` |
 | apksig | 2.3.0 | Maven Central |
+| ProGuard | 7.6.1 | Maven Central `com.guardsquare:proguard-base` |
 | baksmali (تحقق فقط) | 2.5.2 | Maven Central |
 
-قيود المسار الخفيف: لا R8، أي لا تصغير للكود. ملف `classes.dex` يحوي Kotlin stdlib كاملًا (~1.2MB APK). يحتوي stdlib على ثلاث دوال تستخدم `invokedynamic` (`compareBy(vararg)`, `asStream`, `Uuid`)، والتطبيق لا يستدعيها. مهمة `verifyApk` تفشل البناء إن استُدعيت.
+قيود المسار الخفيف: لا يوجد R8. يُستخدم ProGuard للتقليص فقط، دون تعمية الأسماء ودون تحسين للكود، فيحذف ما لا يُستخدم من Kotlin stdlib (حجم APK نحو 600KB). مهمة `verifyApk` تُفشل البناء إن بقي أي `invokedynamic` في الـdex. كل عناصر الـzip مخزنة دون ضغط، ومحاذاة كل عنصر مسجلة في حقل extra قياسي (0xD935).
 
 مفتاح التوقيع في هذا المسار مفتاح اختبار يُولَّد محليًا في `~/.nitaaq/debug.p12`، أو مفتاحك عبر `NITAAQ_KEYSTORE`. الإصدار المرفق موقّع بمفتاح اختبار من بيئة التطوير. لذلك إن بنيت نسخة بمفتاح مختلف، احذف النسخة القديمة من الجهاز قبل التثبيت.

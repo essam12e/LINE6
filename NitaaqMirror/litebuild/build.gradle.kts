@@ -28,8 +28,8 @@ plugins {
 }
 
 val applicationId = "sa.nitaaq.mirror"
-val versionCode = 1
-val versionName = "0.1.0"
+val versionCode = 2
+val versionName = "0.1.1"
 val minSdk = 26
 val targetSdk = 35
 
@@ -44,12 +44,14 @@ val outDir = layout.buildDirectory.dir("outputs").get().asFile
 
 val dx: Configuration by configurations.creating
 val smali: Configuration by configurations.creating
+val proguard: Configuration by configurations.creating
 
 dependencies {
     compileOnly(files(androidJar))
     implementation("com.google.zxing:core:3.5.3")
     dx("com.jakewharton.android.repackaged:dalvik-dx:16.0.1")
     smali("org.smali:baksmali:2.5.2")
+    proguard("com.guardsquare:proguard-base:7.6.1")
     testImplementation("junit:junit:4.13.2")
 }
 
@@ -102,7 +104,9 @@ val prepareManifest by tasks.registering {
     doLast {
         resOut.mkdirs()
         val text = src.readText()
-        dst.writeText(if (text.contains(" package=")) text else text.replaceFirst("<manifest ", "<manifest package=\"$applicationId\" "))
+        // Package attribute + fully-qualified component names, as AGP's manifest merger emits them.
+        val withPkg = if (text.contains(" package=")) text else text.replaceFirst("<manifest ", "<manifest package=\"$applicationId\" ")
+        dst.writeText(withPkg.replace("android:name=\".", "android:name=\"$applicationId."))
     }
 }
 
@@ -162,37 +166,65 @@ val checkAppBytecode by tasks.registering(JavaExec::class) {
         layout.buildDirectory.dir("classes/java/main").get().asFile.path)
 }
 
-val dexApp by tasks.registering(JavaExec::class) {
+/**
+ * Tree-shake app + libraries with ProGuard (no obfuscation, no optimisation). This drops the unused Kotlin stdlib
+ * helpers that contain invokedynamic, so the final dex has none, and shrinks the APK.
+ */
+val shrink by tasks.registering(JavaExec::class) {
     dependsOn(dexInputs, checkAppBytecode)
+    classpath = proguard
+    mainClass.set("proguard.ProGuard")
+    val outJar = layout.buildDirectory.file("shrunk/app.jar").get().asFile
+    inputs.dir(layout.buildDirectory.dir("classes/kotlin/main"))
+    inputs.dir(layout.buildDirectory.dir("dexin"))
+    inputs.file(file("proguard-lite.pro"))
+    outputs.file(outJar)
+    doFirst {
+        outJar.parentFile.mkdirs()
+        val injars = listOf(
+            layout.buildDirectory.dir("classes/kotlin/main").get().asFile,
+            layout.buildDirectory.dir("classes/java/main").get().asFile,
+        ).filter { it.exists() } + layout.buildDirectory.dir("dexin").get().asFile.listFiles()!!.sorted()
+        args = injars.flatMap { listOf("-injars", it.path) } + listOf(
+            "-outjars", outJar.path,
+            "-libraryjars", androidJar.path,
+            "@" + file("proguard-lite.pro").path,
+        )
+    }
+}
+
+val dexApp by tasks.registering(JavaExec::class) {
+    dependsOn(shrink)
     classpath = dx
     mainClass.set("com.android.dx.command.Main")
     maxHeapSize = "2g"
     val dexOut = layout.buildDirectory.file("dex/classes.dex").get().asFile
-    inputs.dir(layout.buildDirectory.dir("classes/kotlin/main"))
-    inputs.dir(layout.buildDirectory.dir("dexin"))
+    inputs.file(layout.buildDirectory.file("shrunk/app.jar"))
     outputs.file(dexOut)
     doFirst {
         dexOut.parentFile.mkdirs()
-        args = listOf("--dex", "--min-sdk-version=$minSdk", "--output=${dexOut.path}",
-            layout.buildDirectory.dir("classes/kotlin/main").get().asFile.path,
-            layout.buildDirectory.dir("classes/java/main").get().asFile.path) +
-            layout.buildDirectory.dir("dexin").get().asFile.listFiles()!!.map { it.path }.sorted()
+        // --min-sdk-version=24 makes dx *fail* on any invokedynamic left after shrinking.
+        args = listOf("--dex", "--min-sdk-version=24", "--output=${dexOut.path}",
+            layout.buildDirectory.file("shrunk/app.jar").get().asFile.path)
     }
 }
 
-fun writeAligned(zout: ZipOutputStream, counter: CountingStream, name: String, data: ByteArray, store: Boolean) {
+fun writeAligned(zout: ZipOutputStream, counter: CountingStream, name: String, data: ByteArray) {
+    // Every entry STORED with sizes in the local header: no data descriptors, no compression quirks.
     val e = ZipEntry(name)
-    if (store) {
-        e.method = ZipEntry.STORED
-        e.size = data.size.toLong(); e.compressedSize = data.size.toLong()
-        e.crc = CRC32().apply { update(data) }.value
-        // Local header = 30 bytes + name + extra. Pad "extra" so the data starts on a 4-byte boundary.
-        val headerEnd = counter.count + 30 + name.toByteArray(Charsets.UTF_8).size
-        val pad = ((4 - (headerEnd % 4)) % 4).toInt()
-        if (pad > 0) e.extra = ByteArray(pad)
-    } else {
-        e.method = ZipEntry.DEFLATED
-    }
+    e.method = ZipEntry.STORED
+    e.size = data.size.toLong(); e.compressedSize = data.size.toLong()
+    e.crc = CRC32().apply { update(data) }.value
+    // Well-formed alignment extra field (ID 0xD935, as zipalign -p / apksigner use): id, size, alignment, zeros.
+    // It appears in both the local header and the central directory, so it must be a valid record there too.
+    val align = if (name.endsWith(".so")) 4096 else 4
+    val headerEnd = counter.count + 30 + name.toByteArray(Charsets.UTF_8).size
+    val pad = ((align - ((headerEnd + 6) % align)) % align).toInt()
+    val extra = ByteArray(6 + pad)
+    extra[0] = 0x35; extra[1] = 0xD9.toByte()
+    extra[2] = (2 + pad).toByte(); extra[3] = ((2 + pad) shr 8).toByte()
+    extra[4] = align.toByte(); extra[5] = (align shr 8).toByte()
+    e.extra = extra
     zout.putNextEntry(e)
     zout.write(data)
     zout.closeEntry()
@@ -220,11 +252,10 @@ val packageApk by tasks.registering {
                 val entries = res.entries().toList().sortedBy { if (it.name == "AndroidManifest.xml") 0 else 1 }
                 for (e in entries) {
                     val bytes = res.getInputStream(e).use { it.readBytes() }
-                    val store = e.name == "resources.arsc" || e.method == ZipEntry.STORED
-                    writeAligned(zout, counter, e.name, bytes, store)
+                    writeAligned(zout, counter, e.name, bytes)
                 }
             }
-            writeAligned(zout, counter, "classes.dex", layout.buildDirectory.file("dex/classes.dex").get().asFile.readBytes(), false)
+            writeAligned(zout, counter, "classes.dex", layout.buildDirectory.file("dex/classes.dex").get().asFile.readBytes())
         }
     }
 }
@@ -266,7 +297,7 @@ val signApk by tasks.registering {
             .setInputApk(File(outDir, "nitaaq-mirror-unsigned.apk"))
             .setOutputApk(signed)
             .setMinSdkVersion(minSdk)
-            .setV1SigningEnabled(false) // v2 is sufficient for minSdk 26 (Android 7+ verifies v2)
+            .setV1SigningEnabled(false) // v2 is what Android 7+ verifies; minSdk is 26
             .setV2SigningEnabled(true)
             .build().sign()
         val result = ApkVerifier.Builder(signed).build().verify()
@@ -302,7 +333,8 @@ val verifyApk by tasks.registering(JavaExec::class) {
         val forbidden = listOf("ComparisonsKt;->compareBy([", "ComparisonsKt;->nullsFirst(", "ComparisonsKt;->nullsLast(", "Lkotlin/streams/", "Lkotlin/uuid/")
         val bad = files.filter { f -> val t = f.readText(); forbidden.any { t.contains(it) } }
         check(bad.isEmpty()) { "app code calls stdlib helpers that use invokedynamic: $bad" }
-        val stdlibIndy = outSmali.walkTopDown().filter { it.isFile && it.readText().contains("invoke-custom") }.map { it.relativeTo(outSmali).path }.toList()
-        println("dex OK: ${files.size} app classes; invoke-custom only in: $stdlibIndy")
+        val anyIndy = outSmali.walkTopDown().filter { it.isFile && it.readText().contains("invoke-custom") }.map { it.relativeTo(outSmali).path }.toList()
+        check(anyIndy.isEmpty()) { "invoke-custom in dex: $anyIndy" }
+        println("dex OK: ${files.size} app classes, ${outSmali.walkTopDown().count { it.isFile }} classes total, no invoke-custom")
     }
 }
