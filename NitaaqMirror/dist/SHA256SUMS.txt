@@ -1,0 +1,2 @@
+01b1e36ecb11f4566962e9614eec519c8ae8ba3f0ee02feae2d85599327cfd14  NitaaqMirror-0.1.4-controller-test.apk
+1d600c5435da42e9662963af81f55d48b6d065011470dca94da6e4ca4a34838b  NitaaqMirror-0.1.4-full-test.apk

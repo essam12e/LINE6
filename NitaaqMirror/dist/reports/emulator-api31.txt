@@ -1,0 +1,20 @@
+Emulator: Android 12 (API 31), x86_64
+PASS  [controller] install
+PASS  [controller] launch (no crash)
+PASS  [controller] open all main screens
+PASS  [controller] no accessibility service declared
+PASS  [full] install
+PASS  [full] launch (no crash)
+PASS  [full] open all main screens
+INFO  end-to-end loopback test (full edition)
+PASS  accessibility service binds
+PASS  screen-capture foreground service running
+PASS  pairing code shown on host
+PASS  approval request accepted (in-app dialog)
+INFO  first frames seen after ~1s of polling
+PASS  video frames rendered on the controller: 45
+PASS  remote screen open
+INFO  tapping toolbar Home at 209,2184 (screen 1080x2400, density 420)
+PASS  Home executed on host via accessibility
+PASS  no crash during end-to-end
+CRITICAL=0

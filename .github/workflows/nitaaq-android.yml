@@ -1,0 +1,152 @@
+# NITAAQ Mirror: official Android toolchain build (AGP + R8 + Android SDK), signature checks,
+# install/launch/end-to-end test on emulators, then publish the tested APKs to NitaaqMirror/dist/.
+#
+# Signing: repository secrets NITAAQ_KEYSTORE_B64 (base64 of a PKCS12 keystore) and NITAAQ_KEYSTORE_PASS.
+# Without them the build is signed with a throw-away key made in the job (clearly marked "temp-key").
+name: NITAAQ Mirror APK
+
+on:
+  push:
+    paths:
+      - "NitaaqMirror/app/**"
+      - "NitaaqMirror/ci/**"
+      - "NitaaqMirror/*.kts"
+      - "NitaaqMirror/gradle/**"
+      - ".github/workflows/nitaaq-android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nitaaq-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: NitaaqMirror
+    outputs:
+      keykind: ${{ steps.key.outputs.kind }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Android SDK packages (SDK is preinstalled on the runner)
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" > /dev/null
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Signing key
+        id: key
+        env:
+          KS_B64: ${{ secrets.NITAAQ_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.NITAAQ_KEYSTORE_PASS }}
+        run: |
+          # A private key from repo secrets wins; otherwise the build falls back to the committed STABLE test
+          # key (app/signing/nitaaq-test.jks). Either way the signature is stable across builds, so new APKs
+          # install as updates over the last one.
+          if [ -n "$KS_B64" ] && [ -n "$KS_PASS" ]; then
+            KS="$RUNNER_TEMP/release.p12"
+            echo "$KS_B64" | base64 -d > "$KS"
+            echo "::add-mask::$KS_PASS"
+            { echo "NITAAQ_KEYSTORE=$KS"; echo "NITAAQ_KEYSTORE_PASS=$KS_PASS"; echo "NITAAQ_KEY_ALIAS=nitaaq"; } >> "$GITHUB_ENV"
+            echo "kind=release" >> "$GITHUB_OUTPUT"
+          else
+            echo "kind=test" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Unit tests
+        run: chmod +x gradlew && ./gradlew --no-daemon testControllerReleaseUnitTest
+
+      - name: Build release APKs (both editions)
+        run: ./gradlew --no-daemon assembleControllerRelease assembleFullRelease
+
+      - name: Verify APKs (apksigner, zipalign, manifest)
+        run: |
+          BT="$ANDROID_HOME/build-tools/35.0.0"
+          mkdir -p out
+          cp app/build/outputs/apk/controller/release/app-controller-release.apk out/controller.apk
+          cp app/build/outputs/apk/full/release/app-full-release.apk out/full.apk
+          for ED in controller full; do
+            echo "== $ED"
+            "$BT/apksigner" verify --verbose --print-certs out/$ED.apk | tee out/verify-$ED.txt
+            "$BT/zipalign" -c -P 16 -v 4 out/$ED.apk | tail -1 | tee -a out/verify-$ED.txt
+            "$BT/aapt2" dump badging out/$ED.apk | grep -E "^package|sdkVersion|native-code|uses-permission" | tee out/manifest-$ED.txt
+            "$BT/aapt2" dump xmltree --file AndroidManifest.xml out/$ED.apk > out/manifest-tree-$ED.txt
+          done
+          if grep -q BIND_ACCESSIBILITY_SERVICE out/manifest-tree-controller.txt; then echo "controller edition must not declare an accessibility service"; exit 1; fi
+          for p in SMS CALL_LOG CONTACTS READ_PHONE MANAGE_EXTERNAL_STORAGE READ_EXTERNAL_STORAGE REQUEST_INSTALL_PACKAGES QUERY_ALL_PACKAGES NOTIFICATION_LISTENER SYSTEM_ALERT_WINDOW; do
+            if grep -q "$p" out/manifest-*.txt; then echo "unexpected permission $p"; exit 1; fi
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apks
+          path: NitaaqMirror/out/
+
+  emulator:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [31, 35]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: apks
+          path: apks
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Install, launch and end-to-end test on the emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash NitaaqMirror/ci/emulator-smoke.sh apks emu-${{ matrix.api }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emulator-${{ matrix.api }}
+          path: emu-${{ matrix.api }}/
+
+  publish:
+    needs: [build, emulator]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: art
+      - name: Commit tested APKs and reports to NitaaqMirror/dist/
+        env:
+          KEYKIND: ${{ needs.build.outputs.keykind }}
+        run: |
+          V=$(grep -m1 'versionName' NitaaqMirror/app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
+          SUF=""; [ "$KEYKIND" = test ] && SUF="-test"
+          D=NitaaqMirror/dist
+          git rm -q --ignore-unmatch "$D"/*.apk || true
+          mkdir -p "$D/reports"
+          cp art/apks/controller.apk "$D/NitaaqMirror-$V-controller$SUF.apk"
+          cp art/apks/full.apk "$D/NitaaqMirror-$V-full$SUF.apk"
+          cp art/apks/verify-*.txt art/apks/manifest-controller.txt art/apks/manifest-full.txt "$D/reports/"
+          for a in 31 35; do cp "art/emulator-$a/report.txt" "$D/reports/emulator-api$a.txt" 2>/dev/null || true
+            for s in main e2e-5-remote e2e-6-after-home; do cp "art/emulator-$a/full-$s.png" "art/emulator-$a/$s.png" "$D/reports/" 2>/dev/null || true; done
+            for f in art/emulator-$a/*.png; do [ -f "$f" ] && cp "$f" "$D/reports/api$a-$(basename "$f")"; done
+          done
+          (cd "$D" && sha256sum *.apk > SHA256SUMS.txt)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A "$D"
+          git commit -m "Add CI-built, emulator-tested APKs $V ($KEYKIND key) [skip ci]" || exit 0
+          git push
