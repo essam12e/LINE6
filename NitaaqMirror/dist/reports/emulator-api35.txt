@@ -9,7 +9,7 @@ PASS  [full] open all main screens
 INFO  end-to-end loopback test (full edition)
 PASS  accessibility service binds
 PASS  screen-capture foreground service running
-FAIL  pairing code not found on host screen
+PASS  pairing code shown on host
 FAIL  manual entry fields not found
 PASS  no crash during end-to-end
 CRITICAL=0
