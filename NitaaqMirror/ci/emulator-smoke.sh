@@ -147,7 +147,6 @@ if [ ${#F[@]} -ge 3 ]; then
   for _ in 1 2 3 4 5 6; do adb shell input keyevent KEYCODE_DEL; done; adb shell input text "$PORT"
   adb shell input keyevent KEYCODE_TAB; adb shell input text "$CODE"
   sleep 1; shot e2e-2d-filled
-  adb shell input keyevent KEYCODE_BACK 2>/dev/null; sleep 1   # hide the soft keyboard if shown
   tap_text "اتصال" "Connect" || info "connect button not found"; sleep 4
   shot e2e-3-verify
   # Approve on the "host" side through the notification (Allow).
