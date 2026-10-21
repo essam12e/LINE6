@@ -274,7 +274,7 @@ class RemoteActivity : BaseActivity(), RemoteSession.Listener, SurfaceHolder.Cal
     private fun toggleFullscreen() {
         fullscreen = !fullscreen
         if (Build.VERSION.SDK_INT >= 30) {
-            val c = window.insetsController ?: return
+            val c = window.decorView.windowInsetsController ?: return
             if (fullscreen) {
                 c.hide(WindowInsets.Type.systemBars())
                 c.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE

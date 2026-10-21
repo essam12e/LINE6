@@ -156,7 +156,9 @@ open class BaseActivity : Activity() {
         if (Build.VERSION.SDK_INT >= 30) {
             window.setDecorFitsSystemWindows(false)
             val light = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-            window.insetsController?.setSystemBarsAppearance(if (darkChrome) 0 else light, light)
+            // Go through decorView: it creates the decor first. Window.getInsetsController() before the decor
+            // exists throws NullPointerException on Android 11-12 (found by the emulator test on API 31).
+            window.decorView.windowInsetsController?.setSystemBarsAppearance(if (darkChrome) 0 else light, light)
         } else if (!darkChrome) {
             @Suppress("DEPRECATION")
             window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
