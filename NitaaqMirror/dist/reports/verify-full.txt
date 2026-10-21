@@ -7,12 +7,12 @@ Verified using v4 scheme (APK Signature Scheme v4): false
 Verified for SourceStamp: false
 Number of signers: 1
 Signer #1 certificate DN: CN=NITAAQ Mirror temporary key
-Signer #1 certificate SHA-256 digest: b729c71f902ac9c1e86841a12a156a122744bc15406d76eaca7ef7e1ae350230
-Signer #1 certificate SHA-1 digest: 5aac521ce35d5803721b647a7ea4be2ccfcd08ac
-Signer #1 certificate MD5 digest: 28581a987ebb9756e6a601396704e3a1
+Signer #1 certificate SHA-256 digest: 10a2f36f8905c4991a7f622b9919f83559757e7b43915334dc7c111fd571623c
+Signer #1 certificate SHA-1 digest: cafc1b9cc49390ecea02df1f6320cd3090e45abf
+Signer #1 certificate MD5 digest: fabc824ec41ede79c0ef1866a43f3e34
 Signer #1 key algorithm: RSA
 Signer #1 key size (bits): 3072
-Signer #1 public key SHA-256 digest: 835a3c609869e1c12b435e151fa5629045d9c885bc92c2993583e966f0d1b9fc
-Signer #1 public key SHA-1 digest: 0e2c5c1e3711e2a891daf7a5318ecdffa6493df8
-Signer #1 public key MD5 digest: f840328d43eb8d72b928a27483bdedf4
+Signer #1 public key SHA-256 digest: 5c81c84f33e83c54417f9b6f2aa944969923a4417c477c2ab5ee65ce3364124b
+Signer #1 public key SHA-1 digest: d34e943d9d6a80708ef08f45dfa090cb782e2e42
+Signer #1 public key MD5 digest: 42fb546c3398bcf9e93c4786e3c87cd4
 Verification succesful
