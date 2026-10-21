@@ -141,10 +141,14 @@ for n in root.iter('node'):
 EOF
 mapfile -t F < "$OUT/fields.txt"
 if [ ${#F[@]} -ge 3 ]; then
-  adb shell input tap ${F[0]}; adb shell input text 127.0.0.1
-  adb shell input tap ${F[1]}; adb shell input keyevent KEYCODE_MOVE_END; for _ in 1 2 3 4 5 6; do adb shell input keyevent KEYCODE_DEL; done; adb shell input text "$PORT"
-  adb shell input tap ${F[2]}; adb shell input text "$CODE"
-  tap_text "اتصال" "Connect"; sleep 4
+  # Focus the first field once, then move with Tab: the keyboard shifts the dialog, so stale coordinates miss.
+  adb shell input tap ${F[0]}; sleep 1; adb shell input text 127.0.0.1
+  adb shell input keyevent KEYCODE_TAB; adb shell input keyevent KEYCODE_MOVE_END
+  for _ in 1 2 3 4 5 6; do adb shell input keyevent KEYCODE_DEL; done; adb shell input text "$PORT"
+  adb shell input keyevent KEYCODE_TAB; adb shell input text "$CODE"
+  sleep 1; shot e2e-2d-filled
+  adb shell input keyevent KEYCODE_BACK 2>/dev/null; sleep 1   # hide the soft keyboard if shown
+  tap_text "اتصال" "Connect" || info "connect button not found"; sleep 4
   shot e2e-3-verify
   # Approve on the "host" side through the notification (Allow).
   adb shell cmd statusbar expand-notifications; sleep 2
