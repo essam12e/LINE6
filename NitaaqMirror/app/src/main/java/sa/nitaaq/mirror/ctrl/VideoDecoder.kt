@@ -38,6 +38,9 @@ class VideoDecoder(private val onNeedKeyFrame: () -> Unit) {
         private set
     val decodeMs = RollingStats(120)
     private val arrivalByPts = LinkedHashMap<Long, Long>()
+    /** Consecutive decoder failures; after 2 we switch to the platform software decoder for this session. */
+    private var failures = 0
+    @Volatile private var preferSoftware = false
 
     fun setSurface(s: Surface?) {
         synchronized(lock) {
@@ -91,7 +94,8 @@ class VideoDecoder(private val onNeedKeyFrame: () -> Unit) {
                     }
                 }
             } catch (e: Exception) {
-                // CodecException / IllegalState: rebuild on the next key frame.
+                // CodecException / IllegalState: rebuild on the next key frame (software decoder after 2 failures).
+                onFailure(e)
                 release()
                 needKey = true
                 onNeedKeyFrame()
@@ -108,6 +112,15 @@ class VideoDecoder(private val onNeedKeyFrame: () -> Unit) {
             c.queueInputBuffer(idx, 0, b.size, 0, MediaCodec.BUFFER_FLAG_CODEC_CONFIG)
         } catch (_: Exception) {}
     }
+
+    private fun onFailure(e: Exception) {
+        failures++
+        if (failures >= 2 && !preferSoftware) preferSoftware = true
+        android.util.Log.w("NitaaqMirror", "decoder failure #$failures ($decoderName): ${e.javaClass.simpleName}; software=$preferSoftware")
+    }
+
+    private fun isSoftware(info: MediaCodecInfo) =
+        if (Build.VERSION.SDK_INT >= 29) info.isSoftwareOnly else info.name.startsWith("OMX.google.") || info.name.startsWith("c2.android.")
 
     private fun start(): Boolean {
         val s = surface ?: return false
@@ -138,6 +151,7 @@ class VideoDecoder(private val onNeedKeyFrame: () -> Unit) {
             true
         } catch (e: Exception) {
             codec = null
+            onFailure(e)
             false
         }
     }
@@ -146,6 +160,7 @@ class VideoDecoder(private val onNeedKeyFrame: () -> Unit) {
         val list = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.filter { info ->
             !info.isEncoder && info.supportedTypes.any { it.equals(MediaFormat.MIMETYPE_VIDEO_AVC, true) }
         }
+        if (preferSoftware) list.firstOrNull { isSoftware(it) }?.let { return it.name }
         val hw = list.filter { if (Build.VERSION.SDK_INT >= 29) it.isHardwareAccelerated && !it.isAlias else !it.name.startsWith("OMX.google.") && !it.name.startsWith("c2.android.") }
         // Prefer a hardware decoder that advertises low latency.
         if (Build.VERSION.SDK_INT >= 30) {
@@ -179,8 +194,11 @@ class VideoDecoder(private val onNeedKeyFrame: () -> Unit) {
                     val arrival = synchronized(arrivalByPts) { arrivalByPts.remove(info.presentationTimeUs) }
                     if (arrival != null) decodeMs.add((System.nanoTime() - arrival) / 1_000_000.0)
                 }
-            } catch (_: Exception) {
-                // released
+            } catch (e: Exception) {
+                // Normal when released; a real error while still current counts as a failure.
+                var failed = false
+                if (codec === c) synchronized(lock) { if (codec === c) { onFailure(e); release(); needKey = true; failed = true } }
+                if (failed) onNeedKeyFrame()
             }
         }, "nm-decoder-out")
         t.priority = Thread.MAX_PRIORITY
