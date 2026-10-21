@@ -9,6 +9,7 @@ set -u
 APKS="$1"; OUT="$2"; mkdir -p "$OUT"
 PKG=sa.nitaaq.mirror
 REPORT="$OUT/report.txt"
+adb root >/dev/null 2>&1; sleep 3; adb wait-for-device   # google_apis images: lets the test open app screens directly
 API=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
 REL=$(adb shell getprop ro.build.version.release | tr -d '\r')
 echo "Emulator: Android $REL (API $API), $(adb shell getprop ro.product.cpu.abi | tr -d '\r')" > "$REPORT"
@@ -98,6 +99,9 @@ if adb shell dumpsys accessibility | grep -q "$PKG/.host.ControlService\|$PKG/$P
 
 adb shell am force-stop $PKG; sleep 1
 adb shell am start -W -n $PKG/.MainActivity > /dev/null 2>&1; sleep 3
+# Force-stop unbinds accessibility services; toggle the setting so the system binds it again.
+adb shell settings put secure enabled_accessibility_services '""' ; sleep 1
+adb shell settings put secure enabled_accessibility_services $PKG/$PKG.host.ControlService; sleep 3
 find_tap "مشاركة هذا الجهاز" "Share this device"; sleep 3
 find_tap "بدء مشاركة الشاشة" "Start screen sharing"; sleep 3
 shot e2e-1-consent
@@ -152,14 +156,29 @@ if [ ${#F[@]} -ge 3 ]; then
   # Approve on the "host" side through the notification (Allow).
   adb shell cmd statusbar expand-notifications; sleep 2
   shot e2e-4-approval
-  if wait_tap 6 "سماح" "Allow"; then pass "approval request shown and accepted"; else fail "approval request not found"; fi
+  if wait_tap 6 "سماح" "Allow"; then pass "approval request accepted (notification)"
+  else
+    # Grouped/collapsed notification: answer in the app's own approval dialog instead.
+    adb shell cmd statusbar collapse; sleep 1
+    adb shell am start -n $PKG/.host.HostActivity > /dev/null 2>&1; sleep 2
+    if wait_tap 6 "سماح" "Allow"; then pass "approval request accepted (in-app dialog)"; else fail "approval request not found"; fi
+    sleep 2; adb shell am start -n $PKG/.ctrl.RemoteActivity > /dev/null 2>&1
+  fi
   adb shell cmd statusbar collapse; sleep 6
   shot e2e-5-remote
   ui_dump
   if adb logcat -d | grep -q "nm-decoder-out\|MediaCodec" ; then info "decoder activity in logcat"; fi
   if adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | grep -q RemoteActivity; then pass "remote screen open"; else info "remote screen not on top"; fi
   # Execute a navigation action on the host through the controller toolbar: Home.
-  if tap_text "الشاشة الرئيسية" "Home"; then
+  # The live video never lets uiautomator see an idle screen, so tap the toolbar's Home button by geometry:
+  # 9 buttons of 40dp (+2dp gaps, 8dp side padding) centred at the bottom, 10dp above the navigation bar.
+  read W H <<<"$(adb shell wm size | tail -1 | grep -o '[0-9]*x[0-9]*' | tr x ' ')"
+  D=$(adb shell wm density | tail -1 | grep -o '[0-9]*$'); DP=$(python3 -c "print($D/160)")
+  NAV=$(python3 -c "print(int(48*$DP))")
+  HX=$(python3 -c "w=9*40+8*2+16; print(int(($W - w*$DP)/2 + (8+40+2+20)*$DP))")
+  HY=$(python3 -c "print(int($H - $NAV - (10+4+20)*$DP))")
+  info "tapping toolbar Home at $HX,$HY (screen ${W}x${H}, density $D)"
+  if adb shell input tap $HX $HY; then
     sleep 3
     if adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | grep -qv "$PKG"; then pass "Home executed on host via accessibility"; else fail "Home did not leave the app"; fi
   else info "Home button not found"; fi
