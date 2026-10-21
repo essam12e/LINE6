@@ -13,7 +13,9 @@ import sa.nitaaq.mirror.ui.Ui
 /** Screen 1: choose this device's role. */
 class MainActivity : BaseActivity() {
 
-    private val refresh: () -> Unit = { build() }
+    private var shownPhase: HostState.Phase? = null
+    /** HostState changes every second while sharing (diagnostics); rebuild only when the phase changes. */
+    private val refresh: () -> Unit = { if (HostState.phase != shownPhase) build() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +33,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun build() {
+        shownPhase = HostState.phase
         val c = Ui.column(this, 16)
         c.addView(Ui.title(this, getString(R.string.app_name_full), 26f))
         c.addView(Ui.body(this, getString(R.string.main_subtitle)))
