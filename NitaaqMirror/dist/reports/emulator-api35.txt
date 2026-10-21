@@ -12,7 +12,7 @@ PASS  screen-capture foreground service running
 PASS  pairing code shown on host
 PASS  approval request accepted (in-app dialog)
 INFO  first frames seen after ~5s of polling
-PASS  video frames rendered on the controller: 80
+PASS  video frames rendered on the controller: 97
 PASS  remote screen open
 INFO  tapping toolbar Home at 209,2184 (screen 1080x2400, density 420)
 PASS  Home executed on host via accessibility
