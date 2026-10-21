@@ -41,6 +41,15 @@ EOF
   adb shell input tap $xy
 }
 
+scroll_down() { adb shell input swipe 160 520 160 180 300; sleep 1; }
+
+# Like tap_text, but scrolls down (up to 4 times) when the target is below the fold.
+find_tap() {
+  tap_text "$@" && return 0
+  for _ in 1 2 3 4; do scroll_down; tap_text "$@" && return 0; done
+  return 1
+}
+
 wait_tap() { # wait_tap <seconds> <text...>
   local t=$1; shift
   for _ in $(seq 1 "$t"); do tap_text "$@" && return 0; sleep 1; done
@@ -89,8 +98,8 @@ if adb shell dumpsys accessibility | grep -q "$PKG/.host.ControlService\|$PKG/$P
 
 adb shell am force-stop $PKG; sleep 1
 adb shell am start -W -n $PKG/.MainActivity > /dev/null 2>&1; sleep 3
-tap_text "مشاركة هذا الجهاز" "Share this device"; sleep 3
-tap_text "بدء مشاركة الشاشة" "Start screen sharing"; sleep 3
+find_tap "مشاركة هذا الجهاز" "Share this device"; sleep 3
+find_tap "بدء مشاركة الشاشة" "Start screen sharing"; sleep 3
 shot e2e-1-consent
 # System consent dialog (wording differs by version).
 wait_tap 8 "Start now" "Start" "START NOW" "ابدأ" || info "consent button not found"
@@ -98,6 +107,8 @@ sleep 5
 shot e2e-2-sharing
 if adb shell dumpsys activity services $PKG | grep -q "HostService"; then pass "screen-capture foreground service running"; else fail "screen-capture service not running"; fi
 
+CODE=""
+for _ in 1 2 3 4; do
 ui_dump
 CODE=$(python3 - "$OUT/ui.xml" <<'EOF'
 import sys, re
@@ -106,14 +117,19 @@ m = re.search(r'(\d{4}) (\d{4})', t)
 print(m.group(1) + m.group(2) if m else '')
 EOF
 )
+[ -n "$CODE" ] && break
+scroll_down
+done
+shot e2e-2b-code
 PORT=$(grep -o ' : [0-9]\{4,5\}' "$OUT/ui.xml" | head -1 | tr -dc 0-9)
 [ -z "$PORT" ] && PORT=47820
 if [ -n "$CODE" ]; then pass "pairing code shown on host"; else fail "pairing code not found on host screen"; fi
 
 # Controller role: manual pairing to ourselves.
 adb shell input keyevent KEYCODE_BACK; sleep 1
-tap_text "التحكم بجهاز آخر" "Control another device"; sleep 2
-tap_text "إدخال يدوي" "Enter manually"; sleep 2
+find_tap "التحكم بجهاز آخر" "Control another device"; sleep 2
+find_tap "إدخال يدوي" "Enter manually"; sleep 2
+shot e2e-2c-manual
 ui_dump
 python3 - "$OUT/ui.xml" > "$OUT/fields.txt" <<'EOF'
 import sys, re, xml.etree.ElementTree as ET
