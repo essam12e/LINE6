@@ -29,8 +29,8 @@ plugins {
 }
 
 val applicationId = "sa.nitaaq.mirror"
-val versionCode = 4
-val versionName = "0.1.3"
+val versionCode = 5
+val versionName = "0.1.4"
 val minSdk = 26
 val targetSdk = 35
 

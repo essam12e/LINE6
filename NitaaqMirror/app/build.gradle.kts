@@ -11,8 +11,8 @@ android {
         applicationId = "sa.nitaaq.mirror"
         minSdk = 26          // StrokeDescription.continueStroke (live gestures) needs API 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "0.1.3"
+        versionCode = 5
+        versionName = "0.1.4"
     }
 
     buildFeatures { buildConfig = true }
@@ -34,8 +34,10 @@ android {
     }
 
     signingConfigs {
-        // The release key comes only from the environment (GitHub Actions secrets); nothing is stored in the repo.
-        create("release") {
+        // Stable key so every build installs/updates over the last one with the same signature.
+        // Default: a committed TEST key (app/signing/nitaaq-test.jks, password below) — protects nothing secret.
+        // For a private distribution build, set NITAAQ_KEYSTORE / NITAAQ_KEYSTORE_PASS / NITAAQ_KEY_ALIAS.
+        create("app") {
             val ks = System.getenv("NITAAQ_KEYSTORE")
             if (ks != null) {
                 storeFile = file(ks)
@@ -43,6 +45,12 @@ android {
                 storePassword = System.getenv("NITAAQ_KEYSTORE_PASS")
                 keyAlias = System.getenv("NITAAQ_KEY_ALIAS") ?: "nitaaq"
                 keyPassword = System.getenv("NITAAQ_KEYSTORE_PASS")
+            } else {
+                storeFile = file("signing/nitaaq-test.jks")
+                storeType = "PKCS12"
+                storePassword = "nitaaqmirror"
+                keyAlias = "nitaaq"
+                keyPassword = "nitaaqmirror"
             }
         }
     }
@@ -51,7 +59,10 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            if (System.getenv("NITAAQ_KEYSTORE") != null) signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("app")
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("app")
         }
     }
 
