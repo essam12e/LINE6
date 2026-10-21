@@ -171,8 +171,13 @@ if [ ${#F[@]} -ge 3 ]; then
   adb shell cmd statusbar collapse; sleep 6
   shot e2e-5-remote
   ui_dump
-  sleep 6
-  R=$(adb logcat -d -s NitaaqMirror:I | grep -o 'rendered=[0-9]*' | tail -1 | tr -dc 0-9)
+  R=""
+  for t in $(seq 1 20); do
+    sleep 1
+    R=$(adb logcat -d -s NitaaqMirror:I | grep -o 'rendered=[0-9]*' | tail -1 | tr -dc 0-9)
+    [ -n "$R" ] && [ "$R" -gt 0 ] && { info "first frames seen after ~${t}s of polling"; break; }
+  done
+  adb logcat -d -s NitaaqMirror:I | tail -5 > "$OUT/video-counters.txt"
   if [ -n "$R" ] && [ "$R" -gt 0 ]; then pass "video frames rendered on the controller: $R"; else fail "no video frames rendered (${R:-no log})"; fi
   if adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | grep -q RemoteActivity; then pass "remote screen open"; else info "remote screen not on top"; fi
   # Execute a navigation action on the host through the controller toolbar: Home.
