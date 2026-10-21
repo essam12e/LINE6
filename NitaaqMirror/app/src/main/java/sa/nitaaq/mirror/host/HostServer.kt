@@ -235,6 +235,9 @@ class HostServer(private val ctx: Context, private val listener: Listener) {
         private var waitForKey = true
         @Volatile var paused = false
         @Volatile private var closed = false
+        /** BYE is written by the writer thread itself, so it never interleaves with a half-written frame. */
+        private var byeReason: Int? = null
+        private var writerStarted = false
         val stats = SendStats()
         private val ended = CountDownLatch(1)
 
@@ -283,6 +286,7 @@ class HostServer(private val ctx: Context, private val listener: Listener) {
         }
 
         fun startWriter() {
+            synchronized(lock) { writerStarted = true }
             val t = Thread({ writerLoop() }, "nm-writer")
             t.priority = Thread.MAX_PRIORITY - 1
             t.start()
@@ -294,15 +298,21 @@ class HostServer(private val ctx: Context, private val listener: Listener) {
                 while (true) {
                     var c: Pair<Int, ByteArray>? = null
                     var v: VideoItem? = null
+                    var bye: Int? = null
                     synchronized(lock) {
-                        while (!closed && ctrl.isEmpty() && video.isEmpty()) lock.wait()
+                        while (!closed && byeReason == null && ctrl.isEmpty() && video.isEmpty()) lock.wait()
                         if (closed) return
+                        bye = byeReason
                         // Control replies (pong, status, text results) always go first.
-                        c = ctrl.pollFirst()
-                        if (c == null) {
+                        c = if (bye == null) ctrl.pollFirst() else null
+                        if (c == null && bye == null) {
                             v = video.pollFirst()
                             v?.let { videoBytes -= it.data.size }
                         }
+                    }
+                    bye?.let { r ->
+                        FrameIO.write(out, Msg.BYE, payload { writeByte(r) }); out.flush()
+                        finishClose(); return
                     }
                     c?.let { FrameIO.write(out, it.first, it.second); out.flush() }
                     v?.let { item ->
@@ -322,7 +332,7 @@ class HostServer(private val ctx: Context, private val listener: Listener) {
                     }
                 }
             } catch (_: Exception) {
-                close(null)
+                finishClose()
             }
         }
 
@@ -351,12 +361,26 @@ class HostServer(private val ctx: Context, private val listener: Listener) {
 
         fun close(reason: Int?) {
             synchronized(lock) {
-                if (closed) return
-                closed = true
-                lock.notifyAll()
+                if (closed || byeReason != null) return
+                if (reason != null && writerStarted) {
+                    byeReason = reason
+                    lock.notifyAll()
+                    // Writer stuck on a dead network: close anyway.
+                    Thread({ Thread.sleep(1500); finishClose() }, "nm-bye-timeout").start()
+                    return
+                }
             }
             if (reason != null) {
                 try { FrameIO.write(out, Msg.BYE, payload { writeByte(reason) }); out.flush() } catch (_: Exception) {}
+            }
+            finishClose()
+        }
+
+        private fun finishClose() {
+            synchronized(lock) {
+                if (closed) return
+                closed = true
+                lock.notifyAll()
             }
             try { sock.close() } catch (_: Exception) {}
             gate.endSession(gen)
