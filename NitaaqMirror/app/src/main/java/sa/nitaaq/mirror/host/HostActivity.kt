@@ -117,7 +117,8 @@ class HostActivity : BaseActivity() {
             HostState.Phase.RUNNING -> {
                 val who = HostState.controllerName
                 share.addView(Ui.body(this, if (who != null) getString(R.string.host_controlled_by, who) else getString(R.string.host_waiting), Ui.OK, 16f))
-                share.addView(Ui.body(this, getString(R.string.host_address, net.ipv4 ?: "—", HostState.port), sizeSp = 13.5f))
+                val addrLabel = if (net.hotspot) R.string.host_address_hotspot else R.string.host_address
+                share.addView(Ui.body(this, getString(addrLabel, net.ipv4 ?: "—", HostState.port), sizeSp = 13.5f))
                 share.addView(Ui.danger(this, getString(R.string.stop_sharing_now)) { HostService.send(this, HostService.ACTION_STOP) })
             }
             HostState.Phase.PROJECTION_STOPPED -> {
@@ -155,8 +156,13 @@ class HostActivity : BaseActivity() {
         })
         perms.addView(Ui.statusLine(this, getString(R.string.perm_battery), getString(R.string.perm_battery_desc), batteryOk(),
             if (batteryOk()) null else getString(R.string.allow)) { requestBattery() })
-        perms.addView(Ui.statusLine(this, getString(R.string.perm_wifi),
-            if (net.onWifi) getString(R.string.perm_wifi_ok, net.ipv4 ?: "—") else getString(R.string.perm_wifi_missing), net.onWifi, null, null))
+        val netTitle = if (net.hotspot) R.string.perm_hotspot else R.string.perm_wifi
+        val netSub = when {
+            net.hotspot -> getString(R.string.perm_hotspot_ok, net.ipv4 ?: "—")
+            net.onWifi -> getString(R.string.perm_wifi_ok, net.ipv4 ?: "—")
+            else -> getString(R.string.perm_wifi_missing)
+        }
+        perms.addView(Ui.statusLine(this, getString(netTitle), netSub, net.reachable, null, null))
         perms.addView(Ui.statusLine(this, getString(R.string.perm_capture), getString(R.string.perm_capture_desc), if (HostState.phase == HostState.Phase.RUNNING) true else null, null, null))
         c.addView(perms)
 

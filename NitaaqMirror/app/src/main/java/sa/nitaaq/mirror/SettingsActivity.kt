@@ -84,5 +84,5 @@ class SettingsActivity : BaseActivity() {
 }
 
 object BuildInfo {
-    const val VERSION_NAME = "0.1.1"
+    const val VERSION_NAME = "0.1.3"
 }

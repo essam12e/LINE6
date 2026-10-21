@@ -34,6 +34,9 @@
     <string name="resume_sharing">الموافقة على المشاركة مجددًا</string>
     <string name="host_controlled_by">متصل الآن: %1$s</string>
     <string name="host_waiting">المشاركة تعمل، بانتظار اتصال جهاز موثوق.</string>
+    <string name="host_address_hotspot">عنوان نقطة الاتصال (Hotspot): %1$s:%2$d</string>
+    <string name="perm_hotspot">نقطة الاتصال (Hotspot)</string>
+    <string name="perm_hotspot_ok">نقطة الاتصال تعمل. عنوان هذا الجهاز للمتحكم: %1$s</string>
     <string name="host_address">العنوان على الشبكة: %1$s:%2$d</string>
     <string name="host_projection_stopped">توقف التقاط الشاشة (أوقفه النظام أو المستخدم، أو قُفل الجهاز). يلزم موافقة أندرويد من جديد.</string>
     <string name="pair_new_device">اقتران جهاز جديد</string>

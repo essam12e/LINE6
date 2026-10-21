@@ -49,7 +49,8 @@ class ControllerActivity : BaseActivity() {
         c.addView(Ui.title(this, getString(R.string.role_controller)))
         c.addView(Ui.body(this, getString(R.string.this_device, App.osLine()), sizeSp = 13f))
         val net = LocalNet.info(this)
-        if (!net.onWifi) c.addView(Ui.card(this, Ui.body(this, getString(R.string.ctrl_not_on_wifi), Ui.WARN)))
+        // On the controller we expect to be a Wi-Fi client of the host's hotspot; warn only if truly offline.
+        if (!net.onWifi && !net.reachable) c.addView(Ui.card(this, Ui.body(this, getString(R.string.ctrl_not_on_wifi), Ui.WARN)))
 
         // Active session shortcut
         val t = RemoteSession.target
