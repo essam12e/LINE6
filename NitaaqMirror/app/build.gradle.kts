@@ -11,26 +11,38 @@ android {
         applicationId = "sa.nitaaq.mirror"
         minSdk = 26          // StrokeDescription.continueStroke (live gestures) needs API 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 3
+        versionName = "0.1.2"
+    }
+
+    buildFeatures { buildConfig = true }
+
+    // Two editions of the same app (same package, same protocol):
+    //  - controller: everything except the touch-control accessibility service (for the phone you hold;
+    //    can also share its screen view-only).
+    //  - full: adds the accessibility service, needed only on the phone being controlled.
+    flavorDimensions += "edition"
+    productFlavors {
+        create("controller") {
+            dimension = "edition"
+            buildConfigField("boolean", "TOUCH_CONTROL", "false")
+        }
+        create("full") {
+            dimension = "edition"
+            buildConfigField("boolean", "TOUCH_CONTROL", "true")
+        }
     }
 
     signingConfigs {
-        // Fixed test key (committed on purpose, see app/signing/README.md) so every CI build can update the
-        // installed app. A private key from the environment (NITAAQ_KEYSTORE) takes precedence.
-        create("nitaaq") {
+        // The release key comes only from the environment (GitHub Actions secrets); nothing is stored in the repo.
+        create("release") {
             val ks = System.getenv("NITAAQ_KEYSTORE")
             if (ks != null) {
                 storeFile = file(ks)
+                storeType = "PKCS12"
                 storePassword = System.getenv("NITAAQ_KEYSTORE_PASS")
                 keyAlias = System.getenv("NITAAQ_KEY_ALIAS") ?: "nitaaq"
                 keyPassword = System.getenv("NITAAQ_KEYSTORE_PASS")
-            } else {
-                storeFile = file("signing/nitaaq-test.p12")
-                storeType = "PKCS12"
-                storePassword = "nitaaq-test"
-                keyAlias = "nitaaq"
-                keyPassword = "nitaaq-test"
             }
         }
     }
@@ -39,20 +51,17 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("nitaaq")
-        }
-        debug {
-            signingConfig = signingConfigs.getByName("nitaaq")
+            if (System.getenv("NITAAQ_KEYSTORE") != null) signingConfig = signingConfigs.getByName("release")
         }
     }
-
-    testOptions { unitTests.isReturnDefaultValues = true }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
+
+    testOptions { unitTests.isReturnDefaultValues = true }
 
     lint {
         abortOnError = false

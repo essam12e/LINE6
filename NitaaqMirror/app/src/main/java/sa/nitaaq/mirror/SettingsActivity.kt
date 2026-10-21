@@ -7,7 +7,7 @@ import android.widget.RadioGroup
 import android.widget.Switch
 import sa.nitaaq.mirror.core.Quality
 import sa.nitaaq.mirror.ctrl.RemoteSession
-import sa.nitaaq.mirror.host.ControlService
+import sa.nitaaq.mirror.host.TouchControl
 import sa.nitaaq.mirror.host.HostState
 import sa.nitaaq.mirror.ui.BaseActivity
 import sa.nitaaq.mirror.ui.Ui
@@ -56,7 +56,7 @@ class SettingsActivity : BaseActivity() {
             Ui.title(this, getString(R.string.s_host), 17f),
             switch(getString(R.string.s_keep_awake), p.keepAwake) {
                 p.keepAwake = it
-                if (HostState.controllerName != null) ControlService.instance?.setKeepAwake(it)
+                if (HostState.controllerName != null) TouchControl.active?.setKeepAwake(it)
             },
             Ui.body(this, getString(R.string.s_keep_awake_desc), sizeSp = 13f),
         ))

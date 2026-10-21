@@ -191,8 +191,12 @@
     <string name="s_keep_awake">Keep the screen awake during a session</string>
     <string name="s_keep_awake_desc">Prevents the screen timeout while a device is connected (official FLAG_KEEP_SCREEN_ON). Uses more battery, does not prevent a manual lock or the power button, and is no guarantee against a faulty display.</string>
     <string name="version_line">Version %1$s — test build</string>
-    <string name="a11y_description">Lets your paired device perform touches, Back and typing on this phone during a sharing session only. It does not record screen content or text.</string>
+    <string name="a11y_label">NITAAQ Mirror — remote touch control</string>
+    <string name="a11y_summary">Lets your paired device perform touches, navigation and typing during a visible sharing session only.</string>
+    <string name="a11y_description">What this service does: on this phone it performs touches (tap, drag, scroll, pinch), Back/Home/Recents, and types text into the selected field. It acts only on commands from a device you paired and approved, during a sharing session that shows a permanent notification. It reads screen content only to find the text field when text is sent, and never records, stores or sends any content or text anywhere. You can turn it off here at any time.</string>
     <string name="diag_host_os">Host system</string>
     <string name="diag_this_os">This device</string>
     <string name="this_device">This device: %1$s</string>
+    <string name="touch_not_in_edition">Touch control is not part of this \"controller\" edition (it has no accessibility service). Screen sharing works view-only. To control this device, install the full edition on it.</string>
+    <string name="st_host_view_only">%1$s runs the \"controller\" edition, which has no touch-control service: view only. Install the full edition on %1$s.</string>
 </resources>

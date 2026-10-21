@@ -1,7 +1,6 @@
 package sa.nitaaq.mirror.host
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ComponentName
 import android.content.Intent
@@ -26,6 +25,7 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import sa.nitaaq.mirror.App
+import sa.nitaaq.mirror.BuildConfig
 import sa.nitaaq.mirror.R
 import sa.nitaaq.mirror.TrustedDevicesActivity
 import sa.nitaaq.mirror.core.PairInvite
@@ -47,7 +47,7 @@ class HostActivity : BaseActivity() {
 
     private fun signature() = listOf(
         HostState.phase, HostState.controllerName, HostState.pairingCode, HostState.pendingApproval,
-        HostState.lastError, ControlService.instance != null, HostState.diagnostics.isEmpty(),
+        HostState.lastError, TouchControl.active != null, HostState.diagnostics.isEmpty(),
     ).joinToString("|")
     private val ticker = object : Runnable {
         override fun run() {
@@ -84,9 +84,10 @@ class HostActivity : BaseActivity() {
         checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
     private fun accessibilityOk(): Boolean {
-        if (ControlService.instance != null) return true
+        if (TouchControl.active != null) return true
         val am = getSystemService(AccessibilityManager::class.java)!!
-        val me = ComponentName(this, ControlService::class.java)
+        if (!BuildConfig.TOUCH_CONTROL) return false
+        val me = ComponentName(packageName, TouchControl.SERVICE_CLASS)
         return am.getEnabledAccessibilityServiceList(android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
             .any { it.resolveInfo?.serviceInfo?.let { si -> ComponentName(si.packageName, si.name) == me } == true }
     }
@@ -140,9 +141,11 @@ class HostActivity : BaseActivity() {
         // --- Permissions checklist
         val perms = Ui.card(this, Ui.title(this, getString(R.string.host_setup_title), 18f),
             Ui.body(this, getString(R.string.this_device, App.osLine()), sizeSp = 13f))
-        perms.addView(Ui.statusLine(this, getString(R.string.perm_accessibility), getString(R.string.perm_accessibility_desc), accessibilityOk(),
+        if (!BuildConfig.TOUCH_CONTROL) {
+            perms.addView(Ui.statusLine(this, getString(R.string.perm_accessibility), getString(R.string.touch_not_in_edition), false, null, null))
+        } else perms.addView(Ui.statusLine(this, getString(R.string.perm_accessibility), getString(R.string.perm_accessibility_desc), accessibilityOk(),
             if (accessibilityOk()) null else getString(R.string.open_settings)) { openAccessibility() })
-        if (!accessibilityOk() && Build.VERSION.SDK_INT >= 33) {
+        if (BuildConfig.TOUCH_CONTROL && !accessibilityOk() && Build.VERSION.SDK_INT >= 33) {
             perms.addView(Ui.statusLine(this, getString(R.string.perm_restricted), getString(R.string.perm_restricted_desc), null,
                 getString(R.string.app_info)) { openAppInfo() })
         }
@@ -274,13 +277,10 @@ class HostActivity : BaseActivity() {
         startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
     }
 
-    @SuppressLint("BatteryLife")
+    /** Opens the system screen (no special permission needed); the user picks the app and "Don't optimise". */
     private fun requestBattery() {
-        try {
-            startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")))
-        } catch (_: Exception) {
-            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
-        }
+        try { startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
+        catch (_: Exception) { openAppInfo() }
     }
 
     companion object {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Minimal capabilities for remote touch control:
+  - canPerformGestures: taps, swipes, long-press, pinch (dispatchGesture) + Back/Home/Recents.
+  - canRetrieveWindowContent: only to find the focused text field when the paired controller sends text.
+  No event stream is used (only one rare event type is declared because the attribute is required),
+  nothing is logged or stored. Not an accessibility tool for users with disabilities, so isAccessibilityTool=false.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/a11y_description"
+    android:summary="@string/a11y_summary"
+    android:accessibilityEventTypes="typeAnnouncement"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault"
+    android:canPerformGestures="true"
+    android:canRetrieveWindowContent="true"
+    android:isAccessibilityTool="false"
+    android:notificationTimeout="1000" />

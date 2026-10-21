@@ -1,4 +1,5 @@
-// NITAAQ Mirror — "lite" APK pipeline (no Android Gradle Plugin).
+// NITAAQ Mirror — "lite" pipeline (no Android Gradle Plugin). Used for local compile checks and the JVM tests
+// where Google's hosts are unreachable. The APKs that are delivered are built by CI with the official toolchain.
 //
 //   aapt2 compile/link  ->  kotlinc (against android.jar)  ->  dx  ->  zip + 4-byte align  ->  apksig (v1+v2)
 //
@@ -71,7 +72,9 @@ kotlin {
 sourceSets {
     main {
         kotlin.srcDir(appMain.resolve("java"))
+        kotlin.srcDir(file("../app/src/full/java"))
         java.srcDir(genDir)
+        java.srcDir(layout.buildDirectory.dir("generated/buildconfig"))
     }
     test {
         kotlin.srcDir(file("../app/src/test/java"))
@@ -128,8 +131,16 @@ val aapt2Link by tasks.registering(Exec::class) {
         File(resOut, "compiled.zip").path,
     )
 }
-tasks.named("compileKotlin") { dependsOn(aapt2Link) }
-tasks.named("compileJava") { dependsOn(aapt2Link) }
+val buildConfig by tasks.registering {
+    val out = layout.buildDirectory.file("generated/buildconfig/sa/nitaaq/mirror/BuildConfig.java").get().asFile
+    outputs.file(out)
+    doLast {
+        out.parentFile.mkdirs()
+        out.writeText("package sa.nitaaq.mirror;\npublic final class BuildConfig {\n  public static final boolean TOUCH_CONTROL = true;\n}\n")
+    }
+}
+tasks.named("compileKotlin") { dependsOn(aapt2Link, buildConfig) }
+tasks.named("compileJava") { dependsOn(aapt2Link, buildConfig) }
 
 /** Jars on the runtime classpath, with META-INF/versions/9 module descriptors stripped (dx can't parse them). */
 val dexInputs by tasks.registering {

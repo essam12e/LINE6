@@ -156,7 +156,7 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         if (HostState.phase == HostState.Phase.STOPPED) return
         HostState.phase = HostState.Phase.PROJECTION_STOPPED
         HostState.changed()
-        ControlService.instance?.setKeepAwake(false)
+        TouchControl.active?.setKeepAwake(false)
         updateNotification()
         sendStatusNow()
     }
@@ -182,7 +182,7 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         releaseCapture()
         advertiser?.stop(); advertiser = null
         server?.stop(); server = null
-        ControlService.instance?.let { it.endAllGestures(); it.setKeepAwake(false) }
+        TouchControl.active?.let { it.endAllGestures(); it.setKeepAwake(false) }
         releaseLocks()
         HostState.phase = HostState.Phase.STOPPED
         HostState.controllerName = null
@@ -205,7 +205,7 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
     override fun onVideoConfig(cfg: VideoConfig) {
         lastConfig = cfg
         lastCsd = null
-        ControlService.instance?.endAllGestures() // geometry changed: lift any finger
+        TouchControl.active?.endAllGestures() // geometry changed: lift any finger
         server?.session?.let {
             it.sendControl(Msg.VIDEO_CONFIG, cfg.encode())
             it.requireKeyFrame()
@@ -239,7 +239,7 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         lastCsd?.let { session.offerVideo(it, FrameFlags.CONFIG, 0) }
         session.requireKeyFrame()
         encoder?.let { e -> abr?.let { e.setBitrate(it.bitrate) }; e.requestKeyFrame() }
-        ControlService.instance?.setKeepAwake(prefs.keepAwake && projection != null)
+        TouchControl.active?.setKeepAwake(prefs.keepAwake && projection != null)
         sendStatusNow()
         updateNotification()
     }
@@ -249,14 +249,14 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         if (current != null && current !== session && !current.isClosed) return // a newer session is live
         HostState.controllerName = null
         HostState.changed()
-        ControlService.instance?.let { it.endAllGestures(); it.setKeepAwake(false) }
+        TouchControl.active?.let { it.endAllGestures(); it.setKeepAwake(false) }
         encoder?.setBitrate(IDLE_BITRATE)
         releaseLocks()
         updateNotification()
     }
 
     override fun onTouch(gen: Int, payload: ByteArray, receivedAt: Long) {
-        val svc = ControlService.instance ?: return
+        val svc = TouchControl.active ?: return
         val gate = server?.gate ?: return
         svc.onTouch(gate, gen, payload, receivedAt)
     }
@@ -264,12 +264,12 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
     override fun onNav(gen: Int, action: Int) {
         if (server?.gate?.isCurrent(gen) != true) return
         if (action == Nav.WAKE_SCREEN) { wakeScreen(); return }
-        ControlService.instance?.nav(action)
+        TouchControl.active?.nav(action)
     }
 
     override fun onText(gen: Int, payload: ByteArray, session: HostServer.Session) {
         if (server?.gate?.isCurrent(gen) != true) return
-        val svc = ControlService.instance
+        val svc = TouchControl.active
         if (svc == null) {
             session.sendControl(Msg.TEXT_RESULT, byteArrayOf(TextResult.NO_ACCESSIBILITY.toByte())); return
         }
@@ -377,7 +377,8 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         }
         m["inter"] = if (getSystemService(PowerManager::class.java)!!.isInteractive) "1" else "0"
         m["lock"] = if (getSystemService(KeyguardManager::class.java)!!.isKeyguardLocked) "1" else "0"
-        m["a11y"] = if (ControlService.instance != null) "1" else "0"
+        m["a11y"] = if (TouchControl.active != null) "1" else "0"
+        if (!sa.nitaaq.mirror.BuildConfig.TOUCH_CONTROL) m["touch"] = "none"
         if (e != null) {
             val out = e.framesOut
             m["fps"] = (out - lastFramesOut).coerceAtLeast(0).toString()
@@ -403,7 +404,7 @@ class HostService : Service(), ScreenEncoder.Sink, HostServer.Listener {
         if (Build.VERSION.SDK_INT >= 29) m["therm"] = getSystemService(PowerManager::class.java)!!.currentThermalStatus.toString()
         val rt = Runtime.getRuntime()
         m["mem"] = (((rt.totalMemory() - rt.freeMemory()) + Debug.getNativeHeapAllocatedSize()) / (1024 * 1024)).toString()
-        m["awake"] = if (ControlService.instance?.isKeepingAwake == true) "1" else "0"
+        m["awake"] = if (TouchControl.active?.isKeepingAwake == true) "1" else "0"
         m["os"] = App.osLine()
         return m
     }

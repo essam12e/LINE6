@@ -491,6 +491,7 @@ class RemoteActivity : BaseActivity(), RemoteSession.Listener, SurfaceHolder.Cal
             }
             LinkState.Connected -> when {
                 st["proj"] == "0" -> getString(R.string.st_needs_approval, host)
+                st["touch"] == "none" -> getString(R.string.st_host_view_only, host)
                 st["a11y"] == "0" -> getString(R.string.st_no_a11y, host)
                 st["disp"] == "off" || st["disp"] == "doze" || st["inter"] == "0" -> {
                     action = getString(R.string.m_wake); onAction = { RemoteSession.sendNav(Nav.WAKE_SCREEN) }

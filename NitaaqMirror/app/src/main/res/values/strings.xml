@@ -50,7 +50,7 @@
     <string name="perm_notifications">الإشعارات</string>
     <string name="perm_notifications_desc">ليظهر إشعار المشاركة وزر الإيقاف وطلبات الاقتران.</string>
     <string name="perm_battery">تشغيل البطارية دون قيود</string>
-    <string name="perm_battery_desc">يقلل إيقاف النظام للمشاركة في الخلفية (Battery ← Unrestricted / Don\'t optimize).</string>
+    <string name="perm_battery_desc">يقلل إيقاف النظام للمشاركة في الخلفية. تفتح شاشة النظام: اختر All apps ← نطاق مرآة ← Don\'t optimize (أو Battery ← Unrestricted).</string>
     <string name="perm_wifi">شبكة Wi-Fi</string>
     <string name="perm_wifi_ok">متصل. عنوان هذا الجهاز: %1$s</string>
     <string name="perm_wifi_missing">غير متصل بشبكة Wi-Fi. يجب أن يكون الجهازان على الشبكة نفسها.</string>
@@ -192,8 +192,12 @@
     <string name="s_keep_awake">إبقاء الشاشة مستيقظة أثناء الجلسة</string>
     <string name="s_keep_awake_desc">يمنع انطفاء الشاشة بسبب المهلة ما دام جهاز متصلًا (بالوسيلة الرسمية FLAG_KEEP_SCREEN_ON). يزيد استهلاك البطارية، ولا يمنع القفل اليدوي أو زر التشغيل، وليس ضمانًا ضد عطل الشاشة.</string>
     <string name="version_line">الإصدار %1$s — إصدار اختبار</string>
-    <string name="a11y_description">تتيح لجهازك المقترن تنفيذ اللمس والرجوع والكتابة على هذا الجوال أثناء جلسة المشاركة فقط. لا تُسجِّل محتوى الشاشة أو النصوص.</string>
+    <string name="a11y_label">نطاق مرآة — التحكم باللمس عن بعد</string>
+    <string name="a11y_summary">يتيح لجهازك المقترن تنفيذ اللمس والتنقل والكتابة أثناء جلسة مشاركة ظاهرة فقط.</string>
+    <string name="a11y_description">ماذا تفعل هذه الخدمة: تنفّذ على هذا الجوال اللمس (ضغط، سحب، تمرير، تكبير) وأزرار الرجوع والرئيسية والتطبيقات الأخيرة، وتكتب النص في الحقل المحدد. لا تعمل إلا بأوامر من جهاز اقترنتَ به ووافقت عليه، وأثناء جلسة مشاركة ظاهرة بإشعار دائم. لا تقرأ محتوى الشاشة إلا لتحديد حقل الكتابة عند إرسال نص، ولا تُسجِّل ولا تحفظ ولا ترسل أي محتوى أو نص إلى أي جهة. يمكنك إيقافها هنا في أي وقت.</string>
     <string name="diag_host_os">نظام المضيف</string>
     <string name="diag_this_os">نظام هذا الجهاز</string>
     <string name="this_device">هذا الجهاز: %1$s</string>
+    <string name="touch_not_in_edition">التحكم باللمس غير موجود في نسخة «المتحكم» هذه (لا تحتوي خدمة وصول). يعمل عرض الشاشة فقط. للتحكم بهذا الجهاز ثبّت عليه النسخة الكاملة.</string>
+    <string name="st_host_view_only">يعمل %1$s بنسخة «المتحكم» التي لا تحتوي خدمة التحكم باللمس، فالعرض متاح دون تحكم. ثبّت النسخة الكاملة على %1$s.</string>
 </resources>

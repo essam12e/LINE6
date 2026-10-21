@@ -31,10 +31,12 @@ import sa.nitaaq.mirror.proto.reader
 import java.text.BreakIterator
 
 /**
- * Accessibility service enabled by the user on the host. It is the only way (without root) to inject touches
- * into other apps. It does nothing until a paired controller is connected, and logs no screen content or text.
+ * Accessibility service enabled by the user on the host ("full" edition only). It is the only way (without root)
+ * to inject touches into other apps. It receives no accessibility events, does nothing until a paired controller
+ * is connected, and never records or stores screen content or text. Window content is read only on demand to
+ * find the focused text field when the controller sends text.
  */
-class ControlService : AccessibilityService() {
+class ControlService : AccessibilityService(), TouchControl {
 
     private lateinit var thread: HandlerThread
     private lateinit var handler: Handler
@@ -55,7 +57,7 @@ class ControlService : AccessibilityService() {
     private val pending = ArrayDeque<SegmentPlan>()
 
     private var overlay: View? = null
-    val isKeepingAwake get() = overlay != null
+    override val isKeepingAwake get() = overlay != null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -64,6 +66,7 @@ class ControlService : AccessibilityService() {
         planner = GesturePlanner(GestureDescription.getMaxStrokeCount().coerceIn(1, 10))
         serialMode = getSharedPreferences("gesture", Context.MODE_PRIVATE).getBoolean("serial", false)
         instance = this
+        TouchControl.active = this
         HostState.changed()
     }
 
@@ -79,6 +82,7 @@ class ControlService : AccessibilityService() {
 
     private fun shutdown() {
         if (instance === this) instance = null
+        if (TouchControl.active === this) TouchControl.active = null
         removeOverlay()
         if (::thread.isInitialized) thread.quitSafely()
         HostState.changed()
@@ -89,7 +93,7 @@ class ControlService : AccessibilityService() {
 
     // ------------------------------------------------------------------ touches
 
-    fun onTouch(gate: CommandGate, gen: Int, payload: ByteArray, receivedAt: Long) {
+    override fun onTouch(gate: CommandGate, gen: Int, payload: ByteArray, receivedAt: Long) {
         handler.post {
             val msg = try { TouchMsg.decode(payload) } catch (_: Exception) { return@post }
             if (!gate.accept(gen, msg.seq)) return@post
@@ -106,7 +110,7 @@ class ControlService : AccessibilityService() {
         }
     }
 
-    fun endAllGestures() {
+    override fun endAllGestures() {
         if (!::handler.isInitialized) return
         handler.post {
             pending.clear()
@@ -227,7 +231,7 @@ class ControlService : AccessibilityService() {
 
     // ------------------------------------------------------------------ navigation
 
-    fun nav(action: Int) {
+    override fun nav(action: Int) {
         handler.post {
             val g = when (action) {
                 Nav.BACK -> GLOBAL_ACTION_BACK
@@ -244,7 +248,7 @@ class ControlService : AccessibilityService() {
     // ------------------------------------------------------------------ text
 
     /** Applies a text operation to the focused input field. The text is never stored or logged. */
-    fun text(payload: ByteArray, reply: (Int) -> Unit) {
+    override fun text(payload: ByteArray, reply: (Int) -> Unit) {
         handler.post {
             val result = try { applyText(payload) } catch (_: Exception) { TextResult.FAILED }
             reply(result)
@@ -312,7 +316,7 @@ class ControlService : AccessibilityService() {
      * Optional "keep the host awake during a session": a 1x1, fully transparent, non-touchable accessibility
      * overlay with FLAG_KEEP_SCREEN_ON. It neither covers the screen nor receives touches.
      */
-    fun setKeepAwake(on: Boolean) {
+    override fun setKeepAwake(on: Boolean) {
         App.main.post {
             if (on && overlay == null) {
                 val wm = getSystemService(WindowManager::class.java)!!
