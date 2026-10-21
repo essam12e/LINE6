@@ -1,0 +1,13 @@
+build/
+.gradle/
+local.properties
+*.iml
+.idea/
+/app/build/
+/litebuild/build/
+/litebuild/.gradle/
+/litebuild/.kotlin/
+.kotlin/
+*.p12
+*.jks
+*.keystore

@@ -1,0 +1,7 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Two phones (host and controller) with a mirrored link; drawn inside the 66dp safe zone. -->
+    <path android:pathData="M30,34 H48 A4,4 0 0 1 52,38 V74 A4,4 0 0 1 48,78 H30 A4,4 0 0 1 26,74 V38 A4,4 0 0 1 30,34 Z" android:strokeColor="#FFFFFFFF" android:strokeWidth="4" android:fillColor="#00000000"/>
+    <path android:pathData="M60,30 H78 A4,4 0 0 1 82,34 V70 A4,4 0 0 1 78,74 H60 A4,4 0 0 1 56,70 V34 A4,4 0 0 1 60,30 Z" android:fillColor="#FFFFFFFF"/>
+    <path android:pathData="M63,40 H75 V62 H63 Z" android:fillColor="#FF0B6E79"/>
+    <path android:pathData="M33,44 H45 V66 H33 Z" android:fillColor="#99FFFFFF"/>
+</vector>

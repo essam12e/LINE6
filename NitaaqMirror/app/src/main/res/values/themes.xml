@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Nitaaq" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#FF0B6E79</item>
+        <item name="android:colorAccent">#FF0B6E79</item>
+        <item name="android:windowBackground">#FFF5F7F8</item>
+    </style>
+    <style name="Theme.Nitaaq.Remote" parent="Theme.Nitaaq">
+        <item name="android:windowBackground">#FF000000</item>
+    </style>
+</resources>
