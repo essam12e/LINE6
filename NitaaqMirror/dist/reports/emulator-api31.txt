@@ -10,9 +10,10 @@ INFO  end-to-end loopback test (full edition)
 PASS  accessibility service binds
 PASS  screen-capture foreground service running
 PASS  pairing code shown on host
-PASS  approval request shown and accepted
+PASS  approval request accepted (notification)
 INFO  decoder activity in logcat
 PASS  remote screen open
-INFO  Home button not found
+INFO  tapping toolbar Home at 34,558 (screen 320x640, density 160)
+FAIL  Home did not leave the app
 PASS  no crash during end-to-end
 CRITICAL=0
