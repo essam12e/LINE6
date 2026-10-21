@@ -258,9 +258,16 @@ class RemoteActivity : BaseActivity(), RemoteSession.Listener, SurfaceHolder.Cal
         background = Ui.rounded(this@RemoteActivity, Color.TRANSPARENT, 20)
         contentDescription = getString(label)
         tooltipText = getString(label)
-        val s = Ui.dp(this@RemoteActivity, 40)
+        val s = toolSizePx()
         layoutParams = LinearLayout.LayoutParams(s, s)
         setOnClickListener { onClick(it) }
+    }
+
+    /** 40dp buttons, shrunk on narrow screens so all 9 toolbar buttons always fit (min 32dp). */
+    private fun toolSizePx(): Int {
+        val widthDp = resources.configuration.smallestScreenWidthDp.takeIf { it > 0 } ?: 360
+        val fit = (widthDp - 16 - 16 - 8 * 2) / 9
+        return Ui.dp(this, fit.coerceIn(32, 40))
     }
 
     private fun match() = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)

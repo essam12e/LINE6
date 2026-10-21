@@ -175,8 +175,10 @@ if [ ${#F[@]} -ge 3 ]; then
   read W H <<<"$(adb shell wm size | tail -1 | grep -o '[0-9]*x[0-9]*' | tr x ' ')"
   D=$(adb shell wm density | tail -1 | grep -o '[0-9]*$'); DP=$(python3 -c "print($D/160)")
   NAV=$(python3 -c "print(int(48*$DP))")
-  HX=$(python3 -c "w=9*40+8*2+16; print(int(($W - w*$DP)/2 + (8+40+2+20)*$DP))")
-  HY=$(python3 -c "print(int($H - $NAV - (10+4+20)*$DP))")
+  SW=$(python3 -c "print(int(min($W,$H)/$DP))")
+  B=$(python3 -c "print(max(32, min(40, ($SW-16-16-16)//9)))")
+  HX=$(python3 -c "w=9*$B+8*2+16; print(int(($W - w*$DP)/2 + (8+$B+2+$B/2)*$DP))")
+  HY=$(python3 -c "print(int($H - $NAV - (10+4+$B/2)*$DP))")
   info "tapping toolbar Home at $HX,$HY (screen ${W}x${H}, density $D)"
   if adb shell input tap $HX $HY; then
     sleep 3
