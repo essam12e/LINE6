@@ -10,9 +10,9 @@ INFO  end-to-end loopback test (full edition)
 PASS  accessibility service binds
 PASS  screen-capture foreground service running
 PASS  pairing code shown on host
-FAIL  approval request not found
+PASS  approval request shown and accepted
 INFO  decoder activity in logcat
-INFO  remote screen not on top
+PASS  remote screen open
 INFO  Home button not found
 PASS  no crash during end-to-end
 CRITICAL=0

@@ -12,7 +12,7 @@ PASS  screen-capture foreground service running
 PASS  pairing code shown on host
 FAIL  approval request not found
 INFO  decoder activity in logcat
-INFO  remote screen not on top
-INFO  Home button not found
+PASS  remote screen open
+FAIL  Home did not leave the app
 PASS  no crash during end-to-end
 CRITICAL=0
