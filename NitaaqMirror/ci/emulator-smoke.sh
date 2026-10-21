@@ -31,10 +31,13 @@ import sys, re, xml.etree.ElementTree as ET
 try: root = ET.parse(sys.argv[1]).getroot()
 except Exception: sys.exit(1)
 wanted = sys.argv[2:]
+exact = wanted[0] == '--exact'
+if exact: wanted = wanted[1:]
 hits = [n for n in root.iter('node')
         if any(w in ((n.get('text') or '') + ' ' + (n.get('content-desc') or '')) for w in wanted)]
 # Exact text first (a button), then clickable nodes, then any label containing the text.
 hits.sort(key=lambda n: ((n.get('text') or '').strip() not in wanted, n.get('clickable') != 'true'))
+if exact: hits = [n for n in hits if (n.get('text') or '').strip() in wanted or (n.get('content-desc') or '').strip() in wanted]
 if not hits: sys.exit(1)
 x1, y1, x2, y2 = map(int, re.findall(r'\d+', hits[0].get('bounds')))
 print((x1 + x2) // 2, (y1 + y2) // 2)
@@ -157,12 +160,12 @@ if [ ${#F[@]} -ge 3 ]; then
   # Approve on the "host" side through the notification (Allow).
   adb shell cmd statusbar expand-notifications; sleep 2
   shot e2e-4-approval
-  if wait_tap 6 "سماح" "Allow"; then pass "approval request accepted (notification)"
+  if wait_tap 6 --exact "سماح" "Allow" "ALLOW"; then pass "approval request accepted (notification)"
   else
     # Grouped/collapsed notification: answer in the app's own approval dialog instead.
     adb shell cmd statusbar collapse; sleep 1
     adb shell am start -n $PKG/.host.HostActivity > /dev/null 2>&1; sleep 2
-    if wait_tap 6 "سماح" "Allow"; then pass "approval request accepted (in-app dialog)"; else fail "approval request not found"; fi
+    if wait_tap 6 --exact "سماح" "Allow" "ALLOW"; then pass "approval request accepted (in-app dialog)"; else fail "approval request not found"; fi
     sleep 2; adb shell am start -n $PKG/.ctrl.RemoteActivity > /dev/null 2>&1
   fi
   adb shell cmd statusbar collapse; sleep 6
